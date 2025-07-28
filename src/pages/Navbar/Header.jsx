@@ -11,10 +11,10 @@ function Header() {
 
   const categories = [
     { name: "Home", path: "/" },
-    { name: "Job", path: "/jobs" },
+    { name: "Job", path: "/job-list" },
     { name: "Room", path: "/rooms/room-list" },
-    { name: "Market", path: "/markets" },
-    { name: "Events", path: "/events" },
+    { name: "Market", path: "/market-list" },
+    { name: "Events", path: "/event-list" },
     { name: "Post Your Listing", path: "/post-listing" },
   ];
 

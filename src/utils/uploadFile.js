@@ -38,3 +38,28 @@ const getImageUrl = (fileId) => {
 };
 
 export { uploadImages, getImageUrl };
+
+
+export function getImageUrls(imageIds) {
+  const ENDPOINT = conf.appWriteUrl; // e.g. https://nyc.cloud.appwrite.io/v1
+  const PROJECT_ID = conf.appWriteProjectId;
+  const BUCKET_ID = conf.appWriteBucketId; // make sure this is set in conf.js
+
+  // If it's already an array, use it directly
+  const ids = Array.isArray(imageIds)
+    ? imageIds
+    : typeof imageIds === "string"
+    ? imageIds.split(",")
+    : [];
+
+  // Map each fileId to full Appwrite view URL
+  return ids.map((id) => {
+    const cleanId = id.trim();
+    if (cleanId.startsWith("http")) {
+      return cleanId; // already a full URL
+    }
+    return `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${cleanId}/view?project=${PROJECT_ID}`;
+  });
+}
+
+

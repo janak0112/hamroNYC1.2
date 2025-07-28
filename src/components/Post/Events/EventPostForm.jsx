@@ -1,59 +1,85 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import listingService from "../../../appwrite/config"; // Adjust the path as needed
-import authService from "../../../appwrite/auth"; // Adjust path for auth service
+import listingService from "../../../appwrite/config";
+import authService from "../../../appwrite/auth";
+import { uploadImages } from "../../../utils/uploadFile"; // Utility function
+import Modal from "../../Modals/Modal";
+
 
 const EventPostForm = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm();
-  const [user, setUser] = useState(null);
+
+  const [userId, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
 
   // Check if the user is logged in
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const currentUser = localStorage.getItem("userId");
-        setUser(currentUser);
+        const currentUser = await authService.getCurrentUser();
+        
+        if (currentUser) {
+          setUser(currentUser.$id);
+        } else {
+          navigate("/login");
+        }
       } catch (error) {
-        setUser(null);
+        console.error("Error checking user:", error);
+        navigate("/login");
       }
     };
     checkUser();
-  }, []);
+  }, [navigate]);
 
   const onSubmit = async (data) => {
-    if (!user) {
-      alert("You need to be logged in to create a post.");
+    if (!userId) {
+      setErrorMessage("Please log in to create a Events listing.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+
+      let uploadedImageIds = [];
+
+      if (selectedFiles.length > 0) {
+        uploadedImageIds = await uploadImages(selectedFiles);
+      }
+
       const eventData = {
         title: data.title,
         description: data.description,
-        category: "event", // Explicitly setting category to event
+        // category: "event", // Explicitly setting category to event
         location: data.location,
         contact: data.contact,
         eventDate: data.eventDate,
         eventTime: data.eventTime,
-        imageId: null, // You can add image upload functionality later
+        imageIds: uploadedImageIds,
+        userId,
       };
 
-      // Create the event listing
-      // const response = await listingService.createEventListing(eventData);
-      // console.log("Event listing created:", response);
+      const response = await listingService.createEventsListing(eventData);
+      console.log("Events listing created:", response);
 
-      // Redirect to the event listings page (or anywhere you prefer)
-      // navigate("/events");
-      console.log(eventData);
+      reset();
+      setSelectedFiles([]);
+      setShowSuccessModal(true);
+
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        // navigate("/events");
+      }, 3000);
     } catch (error) {
       console.error("Error creating event listing:", error);
       alert("Failed to create event listing.");
@@ -167,18 +193,26 @@ const EventPostForm = () => {
           )}
         </div>
 
-        {/* Image Upload Section */}
-        {/* You can add image upload functionality here later */}
-        <div className="mt-4">
-          <label htmlFor="image" className="block text-sm font-semibold">
-            Upload Image (Optional)
+        <div>
+          <label htmlFor="images" className="block text-sm font-semibold">
+            Upload Images (Max 5)
           </label>
           <input
-            id="image"
+            id="images"
             type="file"
             accept="image/*"
+            multiple
+            onChange={(e) => {
+              const files = Array.from(e.target.files).slice(0, 5);
+              setSelectedFiles(files);
+            }}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
+          {selectedFiles.length > 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedFiles.length} image(s) selected
+            </p>
+          )}
         </div>
 
         <button
@@ -189,6 +223,20 @@ const EventPostForm = () => {
           {isSubmitting ? "Creating Listing..." : "Create Listing"}
         </button>
       </form>
+
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Job Listing Created!"
+        message="Your job has been successfully posted. Redirecting to job listings..."
+      />
+
+      <Modal
+        isOpen={!!errorMessage}
+        onClose={() => setErrorMessage("")}
+        title="Error"
+        message={errorMessage}
+      />
     </div>
   );
 };

@@ -9,6 +9,7 @@ export const DataProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [market, setMarket] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,6 +24,7 @@ export const DataProvider = ({ children }) => {
     { type: "jobs", id: conf.appWriteCollectionIdJobs },
     { type: "rooms", id: conf.appWriteCollectionIdRooms },
     { type: "market", id: conf.appWriteCollectionIdMarket },
+    { type: "events", id: conf.appWriteCollectionIdEvents },
   ];
 
   const fetchAllData = useCallback(async () => {
@@ -44,6 +46,7 @@ export const DataProvider = ({ children }) => {
       setJobs(result.filter((doc) => doc.type === "jobs"));
       setRooms(result.filter((doc) => doc.type === "rooms"));
       setMarket(result.filter((doc) => doc.type === "market"));
+      setEvents(result.filter((doc) => doc.type === "events"));
       setError(null);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -64,6 +67,7 @@ export const DataProvider = ({ children }) => {
         jobs, // only jobs
         rooms, // only rooms
         market, // only market
+        events, // only events
         loading,
         error,
         fetchAllData,

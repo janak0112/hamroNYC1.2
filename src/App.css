@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 .custom-primary {
     color: rgba(212, 17, 56, 1);
 }
@@ -171,3 +172,21 @@
   .fixed{
     background-color: rgba(0, 0, 0, 0.9);
   }
+
+
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .gallery img {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+  }
+  
+  .gallery img:hover {
+    transform: scale(1.05);
+  }
+  

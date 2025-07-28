@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import listingService from "../../../appwrite/config"; // Adjust the path as needed
 import authService from "../../../appwrite/auth"; // Adjust path for auth service
 import Modal from "../../Modals/Modal";
+import { uploadImages } from "../../../utils/uploadFile"; // Utility function
 
 const RoomPostForm = () => {
   const {
@@ -18,6 +19,7 @@ const RoomPostForm = () => {
   const [isStudio, setIsStudio] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
 
   // Check if the user is logged in
@@ -43,6 +45,13 @@ const RoomPostForm = () => {
     setIsSubmitting(true);
   
     try {
+
+      let uploadedImageIds = [];
+
+      if (selectedFiles.length > 0) {
+        uploadedImageIds = await uploadImages(selectedFiles);
+      }
+
       const roomData = {
         title: data.title,
         description: data.description,
@@ -55,6 +64,7 @@ const RoomPostForm = () => {
         availableFrom: data.availableFrom,
         isStudio: Boolean(data.isStudio),
         utilitiesIncluded: data.utilitiesIncluded,
+        imageIds: uploadedImageIds,
         user: user,
         publish: true,
       };
@@ -297,6 +307,28 @@ const RoomPostForm = () => {
               Furnished
             </label>
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="images" className="block text-sm font-semibold">
+            Upload Images (Max 5)
+          </label>
+          <input
+            id="images"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              const files = Array.from(e.target.files).slice(0, 5);
+              setSelectedFiles(files);
+            }}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          {selectedFiles.length > 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedFiles.length} image(s) selected
+            </p>
+          )}
         </div>
 
         <p className="text-xs text-gray-500 mt-2">

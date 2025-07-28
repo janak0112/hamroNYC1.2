@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fancyapps/ui": "^6.0.17",
     "@tailwindcss/vite": "^4.1.11",
     "appwrite": "^18.1.1",
     "lucide-react": "^0.525.0",

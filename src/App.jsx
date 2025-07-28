@@ -20,6 +20,8 @@ import {
 } from "./components/Listings";
 import { DataProvider } from "./context/DataContext";
 import RoomList from "./components/Listings/RoomList/RoomList";
+import RoomDetailPage from "./components/Listings/Rooms/RoomDetailPage";
+import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
 function App() {
   return (
@@ -39,7 +41,7 @@ function App() {
               <Route path="jobs/:id" element={<JobDetailPage />} />
               <Route path="market/:id" element={<MarketDetailPage />} />
               <Route path="events/:id" element={<EventDetailPage />} />
-              <Route path="rooms/:id" element={<ListingDetailPage />} />
+              <Route path="rooms/:id" element={<RoomDetailPage />} />
               <Route path="rooms/room-list" element={<RoomList />} />
             </Route>
           </Routes>

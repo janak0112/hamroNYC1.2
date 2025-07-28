@@ -74,6 +74,22 @@ export const createJobListing = async (data) => {
   }
 };
 
+export const createEventsListing = async (data) => {
+  try {
+    const response = await databases.createDocument(
+      conf.appWriteDatabaseId,
+      conf.appWriteCollectionIdEvents,
+      ID.unique(),
+      data
+    );
+    console.log("✅ Listing created:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ createListing error:", error);
+    throw error;
+  }
+};
+
 export const createMarketListing = async (data) => {
   try {
     const response = await databases.createDocument(
@@ -157,5 +173,6 @@ const listingService = {
   createListings,
   createJobListing,
   createMarketListing,
+  createEventsListing,
 };
 export default listingService;
