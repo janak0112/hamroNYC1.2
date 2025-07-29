@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import listingService from "../../../appwrite/config"; // Adjust path as needed
 import authService from "../../../appwrite/auth"; // Adjust path as needed
 import { uploadImages } from "../../../utils/uploadFile"; // Adjust path as needed
+import conf from "../../../conf/conf";
 
 const MarketPostForm = () => {
   const {
@@ -70,7 +71,11 @@ const MarketPostForm = () => {
         userId: user,
         publish: true,
       };
-      await listingService.createMarketListing(marketData);
+      console.log(conf.appWriteCollectionIdMarket);
+      await listingService.createDocument(
+        marketData,
+        conf.appWriteCollectionIdMarket
+      );
       navigate("/market");
     } catch (error) {
       console.error("Failed to create listing:", error);

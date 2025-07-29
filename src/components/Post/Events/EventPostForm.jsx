@@ -5,7 +5,7 @@ import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile"; // Utility function
 import Modal from "../../Modals/Modal";
-
+import conf from "../../../conf/conf";
 
 const EventPostForm = () => {
   const {
@@ -27,7 +27,7 @@ const EventPostForm = () => {
     const checkUser = async () => {
       try {
         const currentUser = await authService.getCurrentUser();
-        
+
         if (currentUser) {
           setUser(currentUser.$id);
         } else {
@@ -50,7 +50,6 @@ const EventPostForm = () => {
     setIsSubmitting(true);
 
     try {
-
       let uploadedImageIds = [];
 
       if (selectedFiles.length > 0) {
@@ -69,7 +68,10 @@ const EventPostForm = () => {
         userId,
       };
 
-      const response = await listingService.createEventsListing(eventData);
+      const response = await listingService.createDocument(
+        eventData,
+        conf.appWriteCollectionIdEvents
+      );
       console.log("Events listing created:", response);
 
       reset();

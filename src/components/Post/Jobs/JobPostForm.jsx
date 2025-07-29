@@ -5,6 +5,7 @@ import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile"; // Utility function
 import Modal from "../../Modals/Modal";
+import conf from "../../../conf/conf";
 
 const JobPostForm = () => {
   const {
@@ -80,7 +81,10 @@ const JobPostForm = () => {
         publish: true,
       };
 
-      const response = await listingService.createJobListing(jobData);
+      const response = await listingService.createDocument(
+        jobData,
+        conf.appWriteCollectionIdJobs
+      );
       console.log("Job listing created:", response);
 
       reset();

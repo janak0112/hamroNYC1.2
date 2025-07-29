@@ -5,6 +5,7 @@ import listingService from "../../../appwrite/config"; // Adjust the path as nee
 import authService from "../../../appwrite/auth"; // Adjust path for auth service
 import Modal from "../../Modals/Modal";
 import { uploadImages } from "../../../utils/uploadFile"; // Utility function
+import conf from "../../../conf/conf";
 
 const RoomPostForm = () => {
   const {
@@ -12,7 +13,7 @@ const RoomPostForm = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-    reset
+    reset,
   } = useForm();
   const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,11 +42,10 @@ const RoomPostForm = () => {
       setShowErrorModal(true);
       return;
     }
-  
-    setIsSubmitting(true);
-  
-    try {
 
+    setIsSubmitting(true);
+
+    try {
       let uploadedImageIds = [];
 
       if (selectedFiles.length > 0) {
@@ -68,10 +68,13 @@ const RoomPostForm = () => {
         user: user,
         publish: true,
       };
-  
-      const response = await listingService.createListings(roomData);
+
+      const response = await listingService.createDocument(
+        roomData,
+        conf.appWriteCollectionIdRooms
+      );
       console.log("Room listing created:", response);
-  
+
       // Clear the form and update states after success
       reset();
       setIsStudio(false);
@@ -80,7 +83,7 @@ const RoomPostForm = () => {
       // Optional: Redirect after a delay
       // setTimeout(() => {
       //   setShowSuccessModal(false);
-      //   navigate("/rooms"); 
+      //   navigate("/rooms");
       // }, 3000);
     } catch (error) {
       console.error("Error creating room listing:", error);
@@ -89,7 +92,7 @@ const RoomPostForm = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleStudioChange = (e) => {
     const value = e.target.value === "true"; // Convert the string value to a boolean
     setIsStudio(value);
@@ -110,7 +113,7 @@ const RoomPostForm = () => {
   //     return () => clearTimeout(timer);
   //   }
   // }, [showSuccessModal, navigate]);
-  
+
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-bold text-center mb-6">
@@ -332,7 +335,8 @@ const RoomPostForm = () => {
         </div>
 
         <p className="text-xs text-gray-500 mt-2">
-          <strong>Disclaimer:</strong> We only promote properties with no agent fees.
+          <strong>Disclaimer:</strong> We only promote properties with no agent
+          fees.
         </p>
         <button
           type="submit"
@@ -362,4 +366,3 @@ const RoomPostForm = () => {
 };
 
 export default RoomPostForm;
-
