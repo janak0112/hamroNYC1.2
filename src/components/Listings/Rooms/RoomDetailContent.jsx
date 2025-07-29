@@ -17,7 +17,7 @@ return (
       {/* Image Gallery */}
       {imageUrls.length > 0 && (
         <Fancybox options={{ Carousel: { infinite: false } }}>
-          <div className="flex gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
             {imageUrls.map((url, index) => (
               <a
                 key={index}
@@ -28,7 +28,7 @@ return (
                 <img
                   src={url.trim()}
                   alt={`${room.title} - ${index + 1}`}
-                  className="w-full rounded-lg shadow cursor-pointer"
+                  className="w-full rounded-lg shadow cursor-pointer object-cover h-80"
                 />
               </a>
             ))}
