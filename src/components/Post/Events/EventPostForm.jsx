@@ -67,7 +67,7 @@ const EventPostForm = () => {
         imageIds: uploadedImageIds,
         userId,
       };
-
+      // ..
       const response = await listingService.createDocument(
         eventData,
         conf.appWriteCollectionIdEvents
