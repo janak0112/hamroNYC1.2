@@ -45,6 +45,8 @@ function JobDetailPage() {
       }
     };
 
+    console.log(id)
+
     fetchJob();
   }, [id]);
 

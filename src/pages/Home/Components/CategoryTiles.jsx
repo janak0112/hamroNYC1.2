@@ -39,8 +39,10 @@ const CategoryTiles = () => (
           className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition-all"
         >
           <Link to={category.link} className="block p-6 text-center">
-            <div className="mb-4 text-blue-500">{category.icon}</div>
-            <h3 className="text-xl font-semibold">{category.name}</h3>
+            <div className="flex align-middle justify-center gap-2 mb-4">
+              <div className="text-[rgb(205,74,61)] flex items-center">{category.icon}</div>
+              <h3 className="text-xl font-semibold">{category.name}</h3>
+            </div>
             <p className="mt-2 text-gray-500">{category.description}</p>
           </Link>
         </div>

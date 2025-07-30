@@ -22,6 +22,7 @@ import {
   CategoryTiles,
   EventDetailPage,
 } from "./components/Display";
+import MyPosts from "./components/Display/MyPosts/MyPosts";
 
 function App() {
   return (
@@ -33,6 +34,8 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="signup" element={<SignUp />} />
               <Route path="login" element={<LogIn />} />
+
+              <Route path="my-posts" element={<MyPosts />} />
 
               <Route path="post-listing" element={<PostListing />} />
 

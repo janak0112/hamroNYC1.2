@@ -32,7 +32,7 @@ const PostCard = ({ post }) => {
       </p>
       <Link
         to={`/${post.type}/${post.$id}`}
-        className="mt-4 inline-block text-blue-500 hover:underline"
+        className="text-sm text-white font-bold custom-primary-bg rounded-md px-4 py-2 custom-primary-bg-hover mt-4 inline-block"
       >
         View Details
       </Link>
