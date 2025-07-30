@@ -4,38 +4,31 @@ import { DataContext } from "../../context/DataContext";
 import HeroBanner from "./Components/HeroBanner";
 import CategoryTiles from "./Components/CategoryTiles";
 import PostSection from "./Components/PostSection";
-import { Link } from "react-router-dom";
 import Footer from "./Components/Footer";
 
 function HomePage() {
-  const { jobs, rooms, market, loading, error } = useContext(DataContext);
-  console.log(jobs);
+  const { jobs, rooms, market, loading, error, events } =
+    useContext(DataContext);
+  const items = [jobs, rooms, market, events];
 
   return (
     <div className="space-y-6">
       <HeroBanner />
       <CategoryTiles />
-      <PostSection
-        title="Latest Jobs"
-        data={jobs}
-        loading={loading}
-        error={error}
-        link="/jobs"
-      />
-      <PostSection
-        title="Latest Rooms"
-        data={rooms}
-        loading={loading}
-        error={error}
-        link="/rooms"
-      />
-      <PostSection
-        title="Latest Market Posts"
-        data={market}
-        loading={loading}
-        error={error}
-        link="/market"
-      />
+      {items.map((item, i) => (
+        <PostSection
+          key={i}
+          title={`Latest ${
+            item[0] &&
+            item[0].type.charAt(0).toUpperCase() +
+              item[0].type.slice(1).toLowerCase()
+          }`}
+          data={item}
+          loading={loading}
+          error={error}
+          link="/jobs"
+        />
+      ))}
 
       <Footer />
     </div>

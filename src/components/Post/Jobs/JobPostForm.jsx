@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
-import { uploadImages } from "../../../utils/uploadFile"; // Utility function
+import { uploadImages } from "../../../utils/uploadFile";
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 
@@ -12,19 +12,21 @@ const JobPostForm = () => {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
     reset,
   } = useForm({
     defaultValues: {
       title: "",
       description: "",
       salary: "",
+      salaryType: "hourly",
       location: "",
-      contact: "",
+      contactNumber: "",
+      contactEmail: "",
       jobType: "full-time",
-      experienceRequired: 0,
       company: "",
       checkOnly: false,
-      userId: "",
+      jobLink: "",
     },
   });
 
@@ -34,6 +36,10 @@ const JobPostForm = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
+
+  // Watch phone and email fields
+  const contactNumber = watch("contactNumber");
+  const contactEmail = watch("contactEmail");
 
   useEffect(() => {
     const checkUser = async () => {
@@ -58,11 +64,16 @@ const JobPostForm = () => {
       return;
     }
 
+    // Validate either phone or email is provided
+    if (!data.contactNumber && !data.contactEmail) {
+      setErrorMessage("Please provide either a contact number or an email.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       let uploadedImageIds = [];
-
       if (selectedFiles.length > 0) {
         uploadedImageIds = await uploadImages(selectedFiles);
       }
@@ -71,10 +82,13 @@ const JobPostForm = () => {
         title: data.title,
         description: data.description,
         salary: data.salary,
+        salaryType: data.salaryType,
         location: data.location,
-        contact: data.contact,
-        experienceRequired: data.experienceRequired,
+        contactNumber: data.contactNumber || null,
+        contactEmail: data.contactEmail || null,
         company: data.company,
+        jobType: data.jobType,
+        jobLink: data.jobLink || null,
         checkOnly: data.checkOnly,
         imageIds: uploadedImageIds,
         userId,
@@ -113,6 +127,7 @@ const JobPostForm = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-xl mx-auto space-y-4"
       >
+        {/* Job Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-semibold">
             Job Title
@@ -132,6 +147,7 @@ const JobPostForm = () => {
           )}
         </div>
 
+        {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-semibold">
             Description
@@ -150,23 +166,39 @@ const JobPostForm = () => {
           )}
         </div>
 
+        {/* Salary with Type */}
         <div>
           <label htmlFor="salary" className="block text-sm font-semibold">
             Salary
           </label>
-          <input
-            id="salary"
-            type="number"
-            step="0.01"
-            placeholder="Salary"
-            {...register("salary", { required: "Salary is required", min: 0 })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
+          <div className="flex gap-2">
+            <input
+              id="salary"
+              type="number"
+              step="0.01"
+              placeholder="Enter Salary"
+              {...register("salary", {
+                required: "Salary is required",
+                min: 0,
+              })}
+              className="w-2/3 p-2 border border-gray-300 rounded-md"
+            />
+            <select
+              id="salaryType"
+              {...register("salaryType")}
+              className="w-1/3 p-2 border border-gray-300 rounded-md"
+            >
+              <option value="hourly">Hourly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
           {errors.salary && (
             <p className="text-red-500 text-xs">{errors.salary.message}</p>
           )}
         </div>
 
+        {/* Location */}
         <div>
           <label htmlFor="location" className="block text-sm font-semibold">
             Location
@@ -186,16 +218,19 @@ const JobPostForm = () => {
           )}
         </div>
 
+        {/* Contact Number */}
         <div>
-          <label htmlFor="contact" className="block text-sm font-semibold">
-            Contact Info
+          <label
+            htmlFor="contactNumber"
+            className="block text-sm font-semibold"
+          >
+            Contact Number
           </label>
           <input
-            id="contact"
+            id="contactNumber"
             type="tel"
             placeholder="Contact Number"
-            {...register("contact", {
-              required: "Contact info is required",
+            {...register("contactNumber", {
               pattern: {
                 value: /^[0-9+\-\s]+$/,
                 message: "Invalid contact number",
@@ -203,11 +238,45 @@ const JobPostForm = () => {
             })}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
-          {errors.contact && (
-            <p className="text-red-500 text-xs">{errors.contact.message}</p>
+          {errors.contactNumber && (
+            <p className="text-red-500 text-xs">
+              {errors.contactNumber.message}
+            </p>
           )}
         </div>
 
+        {/* Contact Email */}
+        <div>
+          <label htmlFor="contactEmail" className="block text-sm font-semibold">
+            Contact Email
+          </label>
+          <input
+            id="contactEmail"
+            type="email"
+            placeholder="Contact Email"
+            {...register("contactEmail", {
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Invalid email address",
+              },
+            })}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          {errors.contactEmail && (
+            <p className="text-red-500 text-xs">
+              {errors.contactEmail.message}
+            </p>
+          )}
+        </div>
+
+        {/* Validation message for either phone or email */}
+        {!contactNumber && !contactEmail && (
+          <p className="text-red-500 text-xs">
+            Please provide at least a contact number or an email.
+          </p>
+        )}
+
+        {/* Job Type */}
         <div>
           <label htmlFor="jobType" className="block text-sm font-semibold">
             Job Type
@@ -226,30 +295,7 @@ const JobPostForm = () => {
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="experienceRequired"
-            className="block text-sm font-semibold"
-          >
-            Experience Required (in years)
-          </label>
-          <input
-            id="experienceRequired"
-            type="number"
-            placeholder="Experience Required"
-            {...register("experienceRequired", {
-              required: "Experience is required",
-              min: 0,
-            })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.experienceRequired && (
-            <p className="text-red-500 text-xs">
-              {errors.experienceRequired.message}
-            </p>
-          )}
-        </div>
-
+        {/* Company */}
         <div>
           <label htmlFor="company" className="block text-sm font-semibold">
             Company
@@ -269,6 +315,30 @@ const JobPostForm = () => {
           )}
         </div>
 
+        {/* Job Application Link */}
+        <div>
+          <label htmlFor="jobLink" className="block text-sm font-semibold">
+            Job Application Link (Optional)
+          </label>
+          <input
+            id="jobLink"
+            type="url"
+            placeholder="https://apply-link.com"
+            {...register("jobLink", {
+              pattern: {
+                value:
+                  /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                message: "Please enter a valid URL",
+              },
+            })}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          {errors.jobLink && (
+            <p className="text-red-500 text-xs">{errors.jobLink.message}</p>
+          )}
+        </div>
+
+        {/* Image Upload */}
         <div>
           <label htmlFor="images" className="block text-sm font-semibold">
             Upload Images (Max 5)
@@ -291,6 +361,7 @@ const JobPostForm = () => {
           )}
         </div>
 
+        {/* Remote Only Option */}
         <div className="mt-4 flex items-center space-x-2">
           <input
             id="checkOnly"

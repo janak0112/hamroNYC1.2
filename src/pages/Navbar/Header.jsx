@@ -11,10 +11,10 @@ function Header() {
 
   const categories = [
     { name: "Home", path: "/" },
-    { name: "Job", path: "/job-list" },
-    { name: "Room", path: "/rooms/room-list" },
-    { name: "Market", path: "/market-list" },
-    { name: "Events", path: "/event-list" },
+    { name: "Job", path: "/jobs" },
+    { name: "Room", path: "/rooms" },
+    { name: "Market", path: "/market" },
+    { name: "Events", path: "/events" },
     { name: "Post Your Listing", path: "/post-listing" },
   ];
 
@@ -60,7 +60,7 @@ function Header() {
           alt="Nepali Connect NYC"
           className="w-10 h-10 rounded-full mr-3 object-contain"
         />
-        <span className="text-2xl font-bold custom-primary">Logo</span>
+        <span className="text-2xl font-bold custom-primary">HamroNYC.com</span>
       </Link>
 
       <nav className="flex items-center space-x-6">

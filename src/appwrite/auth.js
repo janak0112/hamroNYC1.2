@@ -43,6 +43,18 @@ export const getCurrentUser = async () => {
   return null;
 };
 
+//get user using userId
+
+export const getUserById = async (userId) => {
+  try {
+    const user = await account.get(userId);
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by ID:", error);
+    return null;
+  }
+};
+
 // Log out the current user
 export const logout = async () => {
   try {

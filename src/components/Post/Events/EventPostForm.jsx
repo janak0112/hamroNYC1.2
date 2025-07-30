@@ -11,6 +11,7 @@ const EventPostForm = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     reset,
   } = useForm();
@@ -22,12 +23,15 @@ const EventPostForm = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const navigate = useNavigate();
 
-  // Check if the user is logged in
+  const ticketOption = watch("ticketOption");
+  const eventMode = watch("eventMode"); // Online vs In-Person toggle
+
+  const today = new Date().toISOString().split("T")[0];
+
   useEffect(() => {
     const checkUser = async () => {
       try {
         const currentUser = await authService.getCurrentUser();
-
         if (currentUser) {
           setUser(currentUser.$id);
         } else {
@@ -43,7 +47,7 @@ const EventPostForm = () => {
 
   const onSubmit = async (data) => {
     if (!userId) {
-      setErrorMessage("Please log in to create a Events listing.");
+      setErrorMessage("Please log in to create an Events listing.");
       return;
     }
 
@@ -51,7 +55,6 @@ const EventPostForm = () => {
 
     try {
       let uploadedImageIds = [];
-
       if (selectedFiles.length > 0) {
         uploadedImageIds = await uploadImages(selectedFiles);
       }
@@ -59,15 +62,19 @@ const EventPostForm = () => {
       const eventData = {
         title: data.title,
         description: data.description,
-        // category: "event", // Explicitly setting category to event
-        location: data.location,
+        location: data.eventMode === "inPerson" ? data.location : null,
         contact: data.contact,
         eventDate: data.eventDate,
         eventTime: data.eventTime,
+        ticketOption: data.ticketOption,
+        ticketCost: data.ticketOption === "paid" ? data.ticketCost : null,
+        ticketLink: data.ticketLink || null,
+        eventMode: data.eventMode,
+        onlineLink: data.eventMode === "online" ? data.onlineLink : null,
         imageIds: uploadedImageIds,
         userId,
       };
-      // ..
+
       const response = await listingService.createDocument(
         eventData,
         conf.appWriteCollectionIdEvents
@@ -100,6 +107,7 @@ const EventPostForm = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-xl mx-auto space-y-4"
       >
+        {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-semibold">
             Event Title
@@ -116,6 +124,7 @@ const EventPostForm = () => {
           )}
         </div>
 
+        {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-semibold">
             Description
@@ -133,22 +142,70 @@ const EventPostForm = () => {
           )}
         </div>
 
+        {/* Event Mode */}
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold">
-            Event Location
-          </label>
-          <input
-            id="location"
-            type="text"
-            placeholder="Event Location"
-            {...register("location", { required: "Location is required" })}
+          <label className="block text-sm font-semibold">Event Mode</label>
+          <select
+            {...register("eventMode", { required: "Please select event mode" })}
             className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.location && (
-            <p className="text-red-500 text-xs">{errors.location.message}</p>
+          >
+            <option value="">-- Select Mode --</option>
+            <option value="inPerson">In-Person</option>
+            <option value="online">Online</option>
+          </select>
+          {errors.eventMode && (
+            <p className="text-red-500 text-xs">{errors.eventMode.message}</p>
           )}
         </div>
 
+        {/* Location (Only if In-Person) */}
+        {eventMode === "inPerson" && (
+          <div>
+            <label htmlFor="location" className="block text-sm font-semibold">
+              Event Location
+            </label>
+            <input
+              id="location"
+              type="text"
+              placeholder="Event Location"
+              {...register("location", { required: "Location is required" })}
+              className="w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.location && (
+              <p className="text-red-500 text-xs">{errors.location.message}</p>
+            )}
+          </div>
+        )}
+
+        {/* Online Link (Only if Online) */}
+        {eventMode === "online" && (
+          <div>
+            <label htmlFor="onlineLink" className="block text-sm font-semibold">
+              Online Meeting Link
+            </label>
+            <input
+              id="onlineLink"
+              type="url"
+              placeholder="https://zoom.us/meeting-link"
+              {...register("onlineLink", {
+                required: "Online link is required for online events",
+                pattern: {
+                  value:
+                    /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                  message: "Please enter a valid URL",
+                },
+              })}
+              className="w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.onlineLink && (
+              <p className="text-red-500 text-xs">
+                {errors.onlineLink.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Contact */}
         <div>
           <label htmlFor="contact" className="block text-sm font-semibold">
             Contact Info
@@ -165,6 +222,7 @@ const EventPostForm = () => {
           )}
         </div>
 
+        {/* Event Date */}
         <div>
           <label htmlFor="eventDate" className="block text-sm font-semibold">
             Event Date
@@ -172,6 +230,7 @@ const EventPostForm = () => {
           <input
             id="eventDate"
             type="date"
+            min={today}
             {...register("eventDate", { required: "Event date is required" })}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
@@ -180,6 +239,7 @@ const EventPostForm = () => {
           )}
         </div>
 
+        {/* Event Time */}
         <div>
           <label htmlFor="eventTime" className="block text-sm font-semibold">
             Event Time
@@ -195,6 +255,75 @@ const EventPostForm = () => {
           )}
         </div>
 
+        {/* Ticket Option */}
+        <div>
+          <label className="block text-sm font-semibold">Ticket Option</label>
+          <select
+            {...register("ticketOption", {
+              required: "Please select an option",
+            })}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="">-- Select --</option>
+            <option value="free">Free Entry</option>
+            <option value="paid">Paid Ticket</option>
+          </select>
+          {errors.ticketOption && (
+            <p className="text-red-500 text-xs">
+              {errors.ticketOption.message}
+            </p>
+          )}
+        </div>
+
+        {/* Ticket Cost */}
+        {ticketOption === "paid" && (
+          <div>
+            <label htmlFor="ticketCost" className="block text-sm font-semibold">
+              Ticket Cost ($)
+            </label>
+            <input
+              id="ticketCost"
+              type="number"
+              step="0.01"
+              placeholder="Enter ticket price"
+              {...register("ticketCost", {
+                required: "Ticket cost is required for paid events",
+                min: { value: 0, message: "Cost cannot be negative" },
+              })}
+              className="w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.ticketCost && (
+              <p className="text-red-500 text-xs">
+                {errors.ticketCost.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Ticket/Register Link */}
+        <div>
+          <label htmlFor="ticketLink" className="block text-sm font-semibold">
+            Ticket / Registration Link (optional)
+          </label>
+          <input
+            id="ticketLink"
+            type="url"
+            placeholder="https://eventbrite.com/your-event"
+            {...register("ticketLink", {
+              pattern: {
+                value:
+                  /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                message: "Please enter a valid URL",
+              },
+            })}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+          {errors.ticketLink && (
+            <p className="text-red-500 text-xs">{errors.ticketLink.message}</p>
+          )}
+        </div>
+
+        {/* Image Upload */}
         <div>
           <label htmlFor="images" className="block text-sm font-semibold">
             Upload Images (Max 5)
@@ -217,6 +346,7 @@ const EventPostForm = () => {
           )}
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           className="w-full py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600"
@@ -229,8 +359,8 @@ const EventPostForm = () => {
       <Modal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        title="Job Listing Created!"
-        message="Your job has been successfully posted. Redirecting to job listings..."
+        title="Event Listing Created!"
+        message="Your event has been successfully posted."
       />
 
       <Modal

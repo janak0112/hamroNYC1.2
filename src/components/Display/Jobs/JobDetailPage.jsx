@@ -5,6 +5,7 @@ import { Client, Databases } from "appwrite";
 import conf from "../../../conf/conf";
 import JobDetailContent from "./JobDetailContent";
 import { getImageUrl } from "../../../utils/uploadFile"; // Adjust the path if needed
+import { getUserById } from "../../../appwrite/auth";
 
 const client = new Client()
   .setEndpoint(conf.appWriteUrl)
@@ -17,6 +18,7 @@ function JobDetailPage() {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [manager, setManager] = useState({});
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -33,6 +35,8 @@ function JobDetailPage() {
           let url = getImageUrl(res.imageIds);
           setImageUrl(url);
         }
+        const postAdmin = await getUserById(res.userId);
+        setManager(postAdmin);
       } catch (err) {
         console.error(err);
         setError("Failed to load job.");
@@ -52,7 +56,7 @@ function JobDetailPage() {
       </p>
     );
 
-  return <JobDetailContent job={job} imageUrl={imageUrl} />;
+  return <JobDetailContent job={job} imageUrl={imageUrl} manager={manager} />;
 }
 
 export default JobDetailPage;

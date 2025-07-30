@@ -16,7 +16,7 @@ const PostSection = ({ title, data = [], loading, error, link }) => (
     ) : error ? (
       <p className="text-red-500">{error}</p>
     ) : data.length === 0 ? (
-      <p className="text-gray-500">No {title.toLowerCase()} available.</p>
+      <p className="text-gray-500">No data available.</p>
     ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {data.map((post) => (
