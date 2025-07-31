@@ -12,7 +12,7 @@ function HomePage() {
   const items = [jobs, rooms, market, events];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 content-wrapper">
       <HeroBanner />
       <CategoryTiles />
       {items.map((item, i) => (
@@ -29,8 +29,6 @@ function HomePage() {
           link="/jobs"
         />
       ))}
-
-      <Footer />
     </div>
   );
 }

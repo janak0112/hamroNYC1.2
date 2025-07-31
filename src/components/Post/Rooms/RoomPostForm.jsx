@@ -115,8 +115,8 @@ const RoomPostForm = () => {
   // }, [showSuccessModal, navigate]);
 
   return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
+      <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
         Create Room Listing
       </h2>
 
@@ -126,7 +126,7 @@ const RoomPostForm = () => {
       >
         {/* -- Form fields remain the same -- */}
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold">
+          <label htmlFor="title" className="block text-sm font-semibold mb-2">
             Title
           </label>
           <input
@@ -142,7 +142,7 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold">
+          <label htmlFor="description" className="block text-sm font-semibold mb-2">
             Description
           </label>
           <textarea
@@ -159,7 +159,7 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="price" className="block text-sm font-semibold">
+          <label htmlFor="price" className="block text-sm font-semibold mb-2">
             Price (per month)
           </label>
           <input
@@ -175,7 +175,7 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold">
+          <label htmlFor="location" className="block text-sm font-semibold mb-2">
             Location
           </label>
           <input
@@ -191,7 +191,7 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="contact" className="block text-sm font-semibold">
+          <label htmlFor="contact" className="block text-sm font-semibold mb-2">
             Contact Info
           </label>
           <input
@@ -208,7 +208,7 @@ const RoomPostForm = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="bedrooms" className="block text-sm font-semibold">
+            <label htmlFor="bedrooms" className="block text-sm font-semibold mb-2">
               Bedrooms
             </label>
             <input
@@ -227,7 +227,7 @@ const RoomPostForm = () => {
           </div>
 
           <div>
-            <label htmlFor="bathrooms" className="block text-sm font-semibold">
+            <label htmlFor="bathrooms" className="block text-sm font-semibold mb-2">
               Bathrooms
             </label>
             <input
@@ -249,7 +249,7 @@ const RoomPostForm = () => {
         <div>
           <label
             htmlFor="availableFrom"
-            className="block text-sm font-semibold"
+            className="block text-sm font-semibold mb-2"
           >
             Available From
           </label>
@@ -270,7 +270,7 @@ const RoomPostForm = () => {
 
         {/* Studio Selection */}
         <div className="mt-4">
-          <label className="block text-sm font-semibold">Studio?</label>
+          <label className="block text-sm font-semibold mb-2">Studio?</label>
           <select
             {...register("isStudio", {
               required: "Studio selection is required",
@@ -313,7 +313,7 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="images" className="block text-sm font-semibold">
+          <label htmlFor="images" className="block text-sm font-semibold mb-2">
             Upload Images (Max 5)
           </label>
           <input
@@ -340,7 +340,7 @@ const RoomPostForm = () => {
         </p>
         <button
           type="submit"
-          className="w-full py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600"
+          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer"
           disabled={isSubmitting}
         >
           {isSubmitting ? "Creating Listing..." : "Create Listing"}

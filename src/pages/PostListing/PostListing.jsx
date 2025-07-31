@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { House, BriefcaseBusiness, ShoppingCart, CalendarDays } from 'lucide-react';
 
 const AddPostPage = () => {
   const navigate = useNavigate();
@@ -25,53 +26,64 @@ const AddPostPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
+      <h2 className="heading-primary text-3xl font-bold text-center mb-6 heading-primary">
         Choose a Category to Add a Post
       </h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-10">
         {/* Room Option */}
         <div
-          className="flex items-center justify-center p-6 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+          className="flex items-center justify-center p-6 border border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
           onClick={() => handlePostTypeSelection("room")}
         >
-          <div className="text-center">
-            <h3 className="text-lg font-semibold">Room</h3>
-            <p className="text-sm text-gray-500">Post a room listing</p>
+          <div className="flex gap-4 align-middle">
+            <House width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <div className="flex flex-col align-middle justify-center">
+              <h3 className="text-lg font-semibold">Room</h3>
+              <p className="text-sm text-gray-500">Post a room listing</p>
+            </div>
           </div>
         </div>
 
         {/* Job Option */}
         <div
-          className="flex items-center justify-center p-6 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+          className="flex items-center justify-center p-6 border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
           onClick={() => handlePostTypeSelection("job")}
         >
-          <div className="text-center">
-            <h3 className="text-lg font-semibold">Job</h3>
-            <p className="text-sm text-gray-500">Post a job listing</p>
-          </div>
+          <div className="flex gap-4 align-middle">
+            <BriefcaseBusiness width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <div className="flex flex-col align-middle justify-center">
+              <h3 className="text-lg font-semibold">Job</h3>
+              <p className="text-sm text-gray-500">Post a job listing</p>
+            </div></div>
         </div>
 
         {/* Market Option */}
         <div
-          className="flex items-center justify-center p-6 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+          className="flex items-center justify-center p-6 border border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
           onClick={() => handlePostTypeSelection("market")}
         >
-          <div className="text-center">
-            <h3 className="text-lg font-semibold">Market</h3>
-            <p className="text-sm text-gray-500">Post an item for sale</p>
+          <div className="flex gap-4 align-middle">
+            <ShoppingCart width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <div className="flex flex-col align-middle justify-center">
+              <h3 className="text-lg font-semibold">Market</h3>
+              <p className="text-sm text-gray-500">Post an item for sale</p>
+            </div>
           </div>
         </div>
 
         {/* Event Option */}
         <div
-          className="flex items-center justify-center p-6 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+          className="flex items-center justify-center p-6 border border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
           onClick={() => handlePostTypeSelection("event")}
         >
-          <div className="text-center">
-            <h3 className="text-lg font-semibold">Event</h3>
-            <p className="text-sm text-gray-500">Post an event</p>
+          <div className="flex gap-4 align-middle">
+            <CalendarDays width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <div className="flex flex-col align-middle justify-center">
+              <h3 className="text-lg font-semibold">Event</h3>
+              <p className="text-sm text-gray-500">Post an event</p>
+            </div>
           </div>
         </div>
       </div>

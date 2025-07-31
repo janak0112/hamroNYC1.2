@@ -86,8 +86,8 @@ const MarketPostForm = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
+      <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
         Create Market Listing
       </h2>
 
@@ -96,7 +96,7 @@ const MarketPostForm = () => {
         className="max-w-xl mx-auto space-y-4"
       >
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold">
+          <label htmlFor="title" className="block text-sm font-semibold mb-2">
             Title
           </label>
           <input
@@ -112,7 +112,7 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold">
+          <label htmlFor="description" className="block text-sm font-semibold mb-2">
             Description
           </label>
           <textarea
@@ -129,7 +129,7 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="price" className="block text-sm font-semibold">
+          <label htmlFor="price" className="block text-sm font-semibold mb-2">
             Price
           </label>
           <input
@@ -145,7 +145,7 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold">
+          <label htmlFor="location" className="block text-sm font-semibold mb-2">
             Location
           </label>
           <input
@@ -161,7 +161,7 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="contact" className="block text-sm font-semibold">
+          <label htmlFor="contact" className="block text-sm font-semibold mb-2">
             Contact Info
           </label>
           <input
@@ -177,7 +177,7 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="condition" className="block text-sm font-semibold">
+          <label htmlFor="condition" className="block text-sm font-semibold mb-2">
             Condition
           </label>
           <select
@@ -197,7 +197,7 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="images" className="block text-sm font-semibold">
+          <label htmlFor="images" className="block text-sm font-semibold mb-2">
             Upload Images (Max 5)
           </label>
           <input
@@ -224,7 +224,7 @@ const MarketPostForm = () => {
 
         <button
           type="submit"
-          className="w-full py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600"
+          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer"
           disabled={isSubmitting}
         >
           {isSubmitting ? "Creating Listing..." : "Create Listing"}

@@ -14,7 +14,7 @@ function JobDetailContent({ job, imageUrl, manager }) {
       : "";
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
       {/* Hero Image */}
       {imageUrl && (
         <div className="w-full mb-8">
@@ -60,7 +60,7 @@ function JobDetailContent({ job, imageUrl, manager }) {
 
           {/* Job Description */}
           <div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+            <h3 className="text-3xl font-semibold text-gray-800 mb-2">
               Job Description
             </h3>
             <p className="text-gray-700 leading-relaxed">
@@ -74,7 +74,7 @@ function JobDetailContent({ job, imageUrl, manager }) {
           {/* Salary */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800">Salary</h3>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-green-600">
               {job.salary
                 ? `$${job.salary} / ${job.salaryType || "hourly"}`
                 : "Not specified"}

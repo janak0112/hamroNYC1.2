@@ -13,7 +13,7 @@ function RoomDetailContent({ room, imageUrl }) {
 
 
 return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
       {/* Image Gallery */}
       {imageUrls.length > 0 && (
         <Fancybox options={{ Carousel: { infinite: false } }}>
@@ -36,7 +36,7 @@ return (
         </Fancybox>
       )}
   
-      <h1 className="text-2xl font-bold mb-4">{room.title}</h1>
+      <h1 className="text-3xl font-bold mb-4">{room.title}</h1>
   
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}

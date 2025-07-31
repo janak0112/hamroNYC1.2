@@ -98,8 +98,8 @@ const EventPostForm = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
+      <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
         Create Event Listing
       </h2>
 
@@ -109,7 +109,7 @@ const EventPostForm = () => {
       >
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold">
+          <label htmlFor="title" className="block text-sm font-semibold mb-2 mb-2">
             Event Title
           </label>
           <input
@@ -126,7 +126,7 @@ const EventPostForm = () => {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold">
+          <label htmlFor="description" className="block text-sm font-semibold mb-2">
             Description
           </label>
           <textarea
@@ -144,7 +144,7 @@ const EventPostForm = () => {
 
         {/* Event Mode */}
         <div>
-          <label className="block text-sm font-semibold">Event Mode</label>
+          <label className="block text-sm font-semibold mb-2">Event Mode</label>
           <select
             {...register("eventMode", { required: "Please select event mode" })}
             className="w-full p-2 border border-gray-300 rounded-md"
@@ -161,7 +161,7 @@ const EventPostForm = () => {
         {/* Location (Only if In-Person) */}
         {eventMode === "inPerson" && (
           <div>
-            <label htmlFor="location" className="block text-sm font-semibold">
+            <label htmlFor="location" className="block text-sm font-semibold mb-2">
               Event Location
             </label>
             <input
@@ -180,7 +180,7 @@ const EventPostForm = () => {
         {/* Online Link (Only if Online) */}
         {eventMode === "online" && (
           <div>
-            <label htmlFor="onlineLink" className="block text-sm font-semibold">
+            <label htmlFor="onlineLink" className="block text-sm font-semibold mb-2">
               Online Meeting Link
             </label>
             <input
@@ -207,7 +207,7 @@ const EventPostForm = () => {
 
         {/* Contact */}
         <div>
-          <label htmlFor="contact" className="block text-sm font-semibold">
+          <label htmlFor="contact" className="block text-sm font-semibold mb-2">
             Contact Info
           </label>
           <input
@@ -222,42 +222,46 @@ const EventPostForm = () => {
           )}
         </div>
 
-        {/* Event Date */}
-        <div>
-          <label htmlFor="eventDate" className="block text-sm font-semibold">
-            Event Date
-          </label>
-          <input
-            id="eventDate"
-            type="date"
-            min={today}
-            {...register("eventDate", { required: "Event date is required" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.eventDate && (
-            <p className="text-red-500 text-xs">{errors.eventDate.message}</p>
-          )}
+        {/* Event Date & Time in One Row */}
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Event Date */}
+          <div className="flex-1">
+            <label htmlFor="eventDate" className="block text-sm font-semibold mb-2">
+              Event Date
+            </label>
+            <input
+              id="eventDate"
+              type="date"
+              min={today}
+              {...register("eventDate", { required: "Event date is required" })}
+              className="w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.eventDate && (
+              <p className="text-red-500 text-xs">{errors.eventDate.message}</p>
+            )}
+          </div>
+
+          {/* Event Time */}
+          <div className="flex-1">
+            <label htmlFor="eventTime" className="block text-sm font-semibold mb-2">
+              Event Time
+            </label>
+            <input
+              id="eventTime"
+              type="time"
+              {...register("eventTime", { required: "Event time is required" })}
+              className="w-full p-2 border border-gray-300 rounded-md"
+            />
+            {errors.eventTime && (
+              <p className="text-red-500 text-xs">{errors.eventTime.message}</p>
+            )}
+          </div>
         </div>
 
-        {/* Event Time */}
-        <div>
-          <label htmlFor="eventTime" className="block text-sm font-semibold">
-            Event Time
-          </label>
-          <input
-            id="eventTime"
-            type="time"
-            {...register("eventTime", { required: "Event time is required" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.eventTime && (
-            <p className="text-red-500 text-xs">{errors.eventTime.message}</p>
-          )}
-        </div>
 
         {/* Ticket Option */}
         <div>
-          <label className="block text-sm font-semibold">Ticket Option</label>
+          <label className="block text-sm font-semibold mb-2">Ticket Option</label>
           <select
             {...register("ticketOption", {
               required: "Please select an option",
@@ -278,7 +282,7 @@ const EventPostForm = () => {
         {/* Ticket Cost */}
         {ticketOption === "paid" && (
           <div>
-            <label htmlFor="ticketCost" className="block text-sm font-semibold">
+            <label htmlFor="ticketCost" className="block text-sm font-semibold mb-2">
               Ticket Cost ($)
             </label>
             <input
@@ -302,7 +306,7 @@ const EventPostForm = () => {
 
         {/* Ticket/Register Link */}
         <div>
-          <label htmlFor="ticketLink" className="block text-sm font-semibold">
+          <label htmlFor="ticketLink" className="block text-sm font-semibold mb-2">
             Ticket / Registration Link (optional)
           </label>
           <input
@@ -325,7 +329,7 @@ const EventPostForm = () => {
 
         {/* Image Upload */}
         <div>
-          <label htmlFor="images" className="block text-sm font-semibold">
+          <label htmlFor="images" className="block text-sm font-semibold mb-2">
             Upload Images (Max 5)
           </label>
           <input
@@ -349,7 +353,7 @@ const EventPostForm = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600"
+          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer"
           disabled={isSubmitting}
         >
           {isSubmitting ? "Creating Listing..." : "Create Listing"}

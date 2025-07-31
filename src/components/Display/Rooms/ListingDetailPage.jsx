@@ -87,7 +87,7 @@ export default function ListingDetailPage() {
     >
       {/* Headline */}
       <header className="mb-4 flex flex-col gap-2">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-800">
           {listing.title}
         </h1>
         <div className="text-sm text-gray-500 flex items-center gap-2">
@@ -135,7 +135,7 @@ export default function ListingDetailPage() {
         {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
         <aside className="bg-white rounded-lg shadow p-4 space-y-4 h-fit">
           <div>
-            <p className="text-2xl font-extrabold text-custom-primary">$
+            <p className="text-3xl font-extrabold text-custom-primary">$
               {usd(listing.price)}
               <span className="ml-1 text-base font-normal text-gray-600">
                 FOR RENT

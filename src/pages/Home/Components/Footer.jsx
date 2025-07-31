@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="container mx-auto px-6 md:flex md:justify-between md:items-start">
         {/* Branding */}
         <div className="mb-6 md:mb-0">
-          <h2 className="text-2xl font-bold mb-2">Hamro NYC</h2>
+          <h2 className="text-3xl font-bold mb-2">Hamro NYC</h2>
           <p className="text-white max-w-sm">
             Your Nepali community hub in New York — find jobs, rooms, markets,
             and events with ease.

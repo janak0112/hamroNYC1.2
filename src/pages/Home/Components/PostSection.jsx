@@ -6,7 +6,7 @@ import PostCard from "./PostCard";
 const PostSection = ({ title, data = [], loading, error, link }) => (
   <section className="container mx-auto px-6 mb-10">
     <div className="flex justify-between items-center mb-4">
-      <h2 className="text-2xl font-bold">{title}</h2>
+      <h2 className="text-3xl font-bold">{title}</h2>
       <Link to={link} className="text-[rgb(205,74,61)] hover:underline">
         View All
       </Link>

@@ -31,7 +31,7 @@ const categories = [
 ];
 
 const CategoryTiles = () => (
-  <div className="container mx-auto p-6">
+  <div className="container mx-auto px-6 py-20 content-wrapper">
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
       {categories.map((category, index) => (
         <div

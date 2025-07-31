@@ -50,7 +50,7 @@ export default function RoomList() {
       className="max-w-7xl mx-auto p-4 md:p-8"
       data-testid="listing-detail"
     >
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+      <h1 className="text-3xl md:text-3xl font-bold text-gray-800 mb-6">
         All Rooms
       </h1>
 

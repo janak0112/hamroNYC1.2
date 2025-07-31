@@ -8,7 +8,7 @@ const MarketDetailContent = ({ item, imageUrl }) => {
   const [currentImage, setCurrentImage] = useState(0);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="col-span-2">
@@ -21,7 +21,7 @@ const MarketDetailContent = ({ item, imageUrl }) => {
           </div>
 
           <div className="mt-6">
-            <h3 className="text-2xl font-semibold">Item Description</h3>
+            <h3 className="text-3xl font-semibold">Item Description</h3>
             <p className="mt-2">
               {item.description || "No description provided."}
             </p>
@@ -29,7 +29,7 @@ const MarketDetailContent = ({ item, imageUrl }) => {
 
           {/* Static Image Section (can be updated for dynamic images) */}
           <div className="mt-6">
-            <h3 className="text-2xl font-semibold">Item Image</h3>
+            <h3 className="text-3xl font-semibold">Item Image</h3>
             <div className="mt-4">
               {imageUrl && (
                 <img src={imageUrl} alt={item.title} className="mb-4" />

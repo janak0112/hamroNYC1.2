@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import authService from "../../appwrite/auth";
-import listingService from "../../appwrite/config";
 
 function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ get current route path
 
   const categories = [
     { name: "Home", path: "/" },
@@ -19,22 +19,19 @@ function Header() {
     { name: "My Posts", path: "/my-posts" },
   ];
 
-  // Check login status on mount & when route changes
   useEffect(() => {
     const checkUser = async () => {
       try {
         const user = await authService.getCurrentUser();
         localStorage.setItem("userId", user.$id);
-
         setIsLoggedIn(!!user);
       } catch (err) {
         console.error("User fetch error:", err);
         setIsLoggedIn(false);
       }
     };
-
     checkUser();
-  }, [location.pathname]); // ⬅ update on every route change
+  }, [location.pathname]); // ✅ run when route changes
 
   const handleLogout = async () => {
     setErrorMessage("");
@@ -51,7 +48,8 @@ function Header() {
     }
   };
 
-  const linkStyle = "text-sm font-bold custom-primary hover:underline";
+  const linkStyle = "text-sm font-bold custom-primary";
+  const activeStyle = "text-red-600 border-b-2 border-red-600"; // ✅ active link styling
 
   return (
     <header className="flex items-center justify-between bg-white shadow-sm p-4 md:p-6 w-full">
@@ -61,17 +59,26 @@ function Header() {
           alt="Nepali Connect NYC"
           className="w-10 h-10 rounded-full mr-3 object-contain"
         />
-        <span className="text-2xl font-bold custom-primary">HamroNYC.com</span>
+        <span className="text-3xl font-bold custom-primary">HamroNYC.com</span>
       </Link>
 
       <nav className="flex items-center space-x-6">
         {categories.map(({ name, path }) => (
-          <Link key={name} to={path} className={linkStyle}>
+          <Link
+            key={name}
+            to={path}
+            className={`${linkStyle} ${location.pathname === path ? activeStyle : ""
+              }`}
+          >
             {name}
           </Link>
         ))}
 
-        <Link to="/" className={linkStyle}>
+        <Link
+          to="/profile"
+          className={`${linkStyle} ${location.pathname === "/profile" ? activeStyle : ""
+            }`}
+        >
           Profile
         </Link>
 

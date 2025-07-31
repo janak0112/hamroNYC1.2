@@ -16,7 +16,7 @@ function EventDetailContent({ event, imageUrl, manager }) {
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
       {/* Hero Image */}
       {imageUrls.length > 0 && (
         <div className="w-full mb-6">
@@ -122,7 +122,7 @@ function EventDetailContent({ event, imageUrl, manager }) {
 
           {/* Description */}
           <div className="mt-6">
-            <h3 className="text-2xl font-semibold text-gray-800">
+            <h3 className="text-3xl font-semibold text-gray-800">
               Event Description
             </h3>
             <p className="mt-2 text-gray-700 leading-relaxed">

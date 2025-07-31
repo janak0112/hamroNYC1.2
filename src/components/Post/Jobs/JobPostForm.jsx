@@ -118,8 +118,8 @@ const JobPostForm = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
+      <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
         Create Job Listing
       </h2>
 
@@ -129,7 +129,7 @@ const JobPostForm = () => {
       >
         {/* Job Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold">
+          <label htmlFor="title" className="block text-sm font-semibold mb-2">
             Job Title
           </label>
           <input
@@ -149,7 +149,7 @@ const JobPostForm = () => {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold">
+          <label htmlFor="description" className="block text-sm font-semibold mb-2">
             Description
           </label>
           <textarea
@@ -168,7 +168,7 @@ const JobPostForm = () => {
 
         {/* Salary with Type */}
         <div>
-          <label htmlFor="salary" className="block text-sm font-semibold">
+          <label htmlFor="salary" className="block text-sm font-semibold mb-2">
             Salary
           </label>
           <div className="flex gap-2">
@@ -200,7 +200,7 @@ const JobPostForm = () => {
 
         {/* Location */}
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold">
+          <label htmlFor="location" className="block text-sm font-semibold mb-2">
             Location
           </label>
           <input
@@ -222,7 +222,7 @@ const JobPostForm = () => {
         <div>
           <label
             htmlFor="contactNumber"
-            className="block text-sm font-semibold"
+            className="block text-sm font-semibold mb-2"
           >
             Contact Number
           </label>
@@ -247,7 +247,7 @@ const JobPostForm = () => {
 
         {/* Contact Email */}
         <div>
-          <label htmlFor="contactEmail" className="block text-sm font-semibold">
+          <label htmlFor="contactEmail" className="block text-sm font-semibold mb-2">
             Contact Email
           </label>
           <input
@@ -278,7 +278,7 @@ const JobPostForm = () => {
 
         {/* Job Type */}
         <div>
-          <label htmlFor="jobType" className="block text-sm font-semibold">
+          <label htmlFor="jobType" className="block text-sm font-semibold mb-2">
             Job Type
           </label>
           <select
@@ -297,7 +297,7 @@ const JobPostForm = () => {
 
         {/* Company */}
         <div>
-          <label htmlFor="company" className="block text-sm font-semibold">
+          <label htmlFor="company" className="block text-sm font-semibold mb-2">
             Company
           </label>
           <input
@@ -317,7 +317,7 @@ const JobPostForm = () => {
 
         {/* Job Application Link */}
         <div>
-          <label htmlFor="jobLink" className="block text-sm font-semibold">
+          <label htmlFor="jobLink" className="block text-sm font-semibold mb-2">
             Job Application Link (Optional)
           </label>
           <input
@@ -340,7 +340,7 @@ const JobPostForm = () => {
 
         {/* Image Upload */}
         <div>
-          <label htmlFor="images" className="block text-sm font-semibold">
+          <label htmlFor="images" className="block text-sm font-semibold mb-2">
             Upload Images (Max 5)
           </label>
           <input
@@ -376,7 +376,7 @@ const JobPostForm = () => {
 
         <button
           type="submit"
-          className="w-full py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400"
+          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer disabled:bg-gray-400"
           disabled={isSubmitting || !userId}
         >
           {isSubmitting ? "Creating Listing..." : "Create Listing"}
