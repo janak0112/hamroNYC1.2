@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import authService from "../../appwrite/auth";
 
-function Header() {
+function Header({ref}) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -52,7 +52,7 @@ function Header() {
   const activeStyle = "text-red-600 border-b-2 border-red-600"; // ✅ active link styling
 
   return (
-    <header className="flex items-center justify-between bg-white shadow-sm p-4 md:p-6 w-full">
+    <header ref={ref} className="flex items-center justify-between bg-white shadow-sm p-4 md:p-6 w-full">
       <Link to="/" className="flex items-center">
         <img
           src="/img/logo.png"

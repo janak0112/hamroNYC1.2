@@ -14,7 +14,7 @@ function JobDetailContent({ job, imageUrl }) {
       : "";
 
   return (
-    <div className="container mx-auto px-6 py-20 content-wrapper">
+    <div className="container mx-auto px-6 py-20">
       {/* Hero Image */}
       {imageUrl && (
         <div className="w-full mb-8">

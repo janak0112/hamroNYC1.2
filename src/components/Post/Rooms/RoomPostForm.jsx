@@ -110,7 +110,7 @@ const RoomPostForm = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-20 content-wrapper">
+    <div className="container mx-auto px-6 py-20">
       <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
         Create Room Listing
       </h2>

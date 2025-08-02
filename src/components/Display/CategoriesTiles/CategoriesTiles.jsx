@@ -44,7 +44,7 @@ export default function ListingList() {
               className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition-all"
             >
               {/* Header */}
-              <header className="p-4">
+              <div className="p-4">
                 <h2 className="text-lg font-semibold text-gray-800">
                   {item.title}
                 </h2>
@@ -53,7 +53,7 @@ export default function ListingList() {
                     <MapPin size={14} /> {item.location}
                   </div>
                 )}
-              </header>
+              </div>
 
               {/* Image Gallery */}
               <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">

@@ -47,7 +47,6 @@ const MyPosts = () => {
                 ) : null
             )}
 
-            <Footer />
         </div>
     );
 };

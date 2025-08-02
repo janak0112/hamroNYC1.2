@@ -91,7 +91,7 @@ export default function ListingDetailPage() {
       data-testid="listing-detail"
     >
       {/* Headline */}
-      <header className="mb-4 flex flex-col gap-2">
+      <div className="mb-4 flex flex-col gap-2">
         <h1 className="text-xl md:text-3xl font-bold text-gray-800">
           {listing.title}
         </h1>
@@ -101,7 +101,7 @@ export default function ListingDetailPage() {
           <span className="hidden sm:inline">Views {listing.views}</span>
           <span className="hidden sm:inline">· Date {listing.date}</span>
         </div>
-      </header>
+      </div>
 
       <div className="grid md:grid-cols-[2fr_1fr] gap-8">
         {/* ── GALLERY ─────────────────────────────────────────────────────── */}
