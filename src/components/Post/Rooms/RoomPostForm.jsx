@@ -27,14 +27,19 @@ const RoomPostForm = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const currentUser = localStorage.getItem("userId");
-        setUser(currentUser);
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser({ id: currentUser.$id, name: currentUser.name });
+        } else {
+          navigate("/login");
+        }
       } catch (error) {
-        setUser(null);
+        console.error("User check failed:", error);
+        navigate("/login");
       }
     };
     checkUser();
-  }, []);
+  }, [navigate]);
 
   const onSubmit = async (data) => {
     if (!user) {
@@ -65,7 +70,7 @@ const RoomPostForm = () => {
         isStudio: Boolean(data.isStudio),
         utilitiesIncluded: data.utilitiesIncluded,
         imageIds: uploadedImageIds,
-        user: user,
+        postedBy: JSON.stringify(user),
         publish: true,
       };
 
@@ -104,16 +109,6 @@ const RoomPostForm = () => {
     }
   };
 
-  // useEffect(() => {
-  //   if (showSuccessModal) {
-  //     const timer = setTimeout(() => {
-  //       setShowSuccessModal(false);
-  //       // navigate("/rooms");
-  //     }, 3000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [showSuccessModal, navigate]);
-
   return (
     <div className="container mx-auto px-6 py-20 content-wrapper">
       <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
@@ -142,7 +137,10 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-semibold mb-2"
+          >
             Description
           </label>
           <textarea
@@ -175,7 +173,10 @@ const RoomPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="location"
+            className="block text-sm font-semibold mb-2"
+          >
             Location
           </label>
           <input
@@ -208,7 +209,10 @@ const RoomPostForm = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="bedrooms" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="bedrooms"
+              className="block text-sm font-semibold mb-2"
+            >
               Bedrooms
             </label>
             <input
@@ -227,7 +231,10 @@ const RoomPostForm = () => {
           </div>
 
           <div>
-            <label htmlFor="bathrooms" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="bathrooms"
+              className="block text-sm font-semibold mb-2"
+            >
               Bathrooms
             </label>
             <input

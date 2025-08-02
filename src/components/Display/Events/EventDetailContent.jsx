@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import Fancybox from "../../FancyBox/fancyBox";
 
-function EventDetailContent({ event, imageUrl, manager }) {
+function EventDetailContent({ event, imageUrl }) {
+  console.log(event);
   // Ensure imageUrl is always an array
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
 
@@ -155,11 +156,10 @@ function EventDetailContent({ event, imageUrl, manager }) {
           )}
 
           <p className="text-sm text-gray-500">
-            Posted by:{" "}
             <span className="font-medium text-gray-700">
-              {manager.name
-                ? manager.name
-                    .split(" ")
+              {event.postedBy
+                ? JSON.parse(event.postedBy)
+                    .name.split(" ")
                     .map(
                       (word) =>
                         word.charAt(0).toUpperCase() +

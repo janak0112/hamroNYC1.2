@@ -16,7 +16,7 @@ const EventPostForm = () => {
     reset,
   } = useForm();
 
-  const [userId, setUser] = useState(null);
+  const [postedBy, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -33,7 +33,8 @@ const EventPostForm = () => {
       try {
         const currentUser = await authService.getCurrentUser();
         if (currentUser) {
-          setUser(currentUser.$id);
+          setUser({ id: currentUser.$id, name: currentUser.name });
+          console.log(postedBy);
         } else {
           navigate("/login");
         }
@@ -46,7 +47,8 @@ const EventPostForm = () => {
   }, [navigate]);
 
   const onSubmit = async (data) => {
-    if (!userId) {
+    console.log(postedBy);
+    if (!postedBy) {
       setErrorMessage("Please log in to create an Events listing.");
       return;
     }
@@ -72,7 +74,7 @@ const EventPostForm = () => {
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,
         imageIds: uploadedImageIds,
-        userId,
+        postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
       const response = await listingService.createDocument(
@@ -109,7 +111,10 @@ const EventPostForm = () => {
       >
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold mb-2 mb-2">
+          <label
+            htmlFor="title"
+            className="block text-sm font-semibold mb-2 mb-2"
+          >
             Event Title
           </label>
           <input
@@ -126,7 +131,10 @@ const EventPostForm = () => {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-semibold mb-2"
+          >
             Description
           </label>
           <textarea
@@ -161,7 +169,10 @@ const EventPostForm = () => {
         {/* Location (Only if In-Person) */}
         {eventMode === "inPerson" && (
           <div>
-            <label htmlFor="location" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="location"
+              className="block text-sm font-semibold mb-2"
+            >
               Event Location
             </label>
             <input
@@ -180,7 +191,10 @@ const EventPostForm = () => {
         {/* Online Link (Only if Online) */}
         {eventMode === "online" && (
           <div>
-            <label htmlFor="onlineLink" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="onlineLink"
+              className="block text-sm font-semibold mb-2"
+            >
               Online Meeting Link
             </label>
             <input
@@ -226,7 +240,10 @@ const EventPostForm = () => {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Event Date */}
           <div className="flex-1">
-            <label htmlFor="eventDate" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="eventDate"
+              className="block text-sm font-semibold mb-2"
+            >
               Event Date
             </label>
             <input
@@ -243,7 +260,10 @@ const EventPostForm = () => {
 
           {/* Event Time */}
           <div className="flex-1">
-            <label htmlFor="eventTime" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="eventTime"
+              className="block text-sm font-semibold mb-2"
+            >
               Event Time
             </label>
             <input
@@ -258,10 +278,11 @@ const EventPostForm = () => {
           </div>
         </div>
 
-
         {/* Ticket Option */}
         <div>
-          <label className="block text-sm font-semibold mb-2">Ticket Option</label>
+          <label className="block text-sm font-semibold mb-2">
+            Ticket Option
+          </label>
           <select
             {...register("ticketOption", {
               required: "Please select an option",
@@ -282,7 +303,10 @@ const EventPostForm = () => {
         {/* Ticket Cost */}
         {ticketOption === "paid" && (
           <div>
-            <label htmlFor="ticketCost" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="ticketCost"
+              className="block text-sm font-semibold mb-2"
+            >
               Ticket Cost ($)
             </label>
             <input
@@ -306,7 +330,10 @@ const EventPostForm = () => {
 
         {/* Ticket/Register Link */}
         <div>
-          <label htmlFor="ticketLink" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="ticketLink"
+            className="block text-sm font-semibold mb-2"
+          >
             Ticket / Registration Link (optional)
           </label>
           <input

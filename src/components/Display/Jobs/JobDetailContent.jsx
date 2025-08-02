@@ -2,7 +2,7 @@
 import React from "react";
 import { Phone, MapPin, CalendarClock, Mail } from "lucide-react";
 
-function JobDetailContent({ job, imageUrl, manager }) {
+function JobDetailContent({ job, imageUrl }) {
   const formatName = (name) =>
     name
       ? name
@@ -76,7 +76,7 @@ function JobDetailContent({ job, imageUrl, manager }) {
             <h3 className="text-xl font-semibold text-gray-800">Salary</h3>
             <p className="text-3xl font-bold text-green-600">
               {job.salary
-                ? `$${job.salary} / ${job.salaryType || "hourly"}`
+                ? `${job.salary} / ${job.salaryType}`
                 : "Not specified"}
             </p>
           </div>
@@ -109,7 +109,7 @@ function JobDetailContent({ job, imageUrl, manager }) {
           <p className="text-sm text-gray-500 mb-6">
             Posted by:{" "}
             <span className="font-medium text-gray-800">
-              {formatName(manager.name)}
+              {formatName(JSON.parse(job.postedBy).name)}
             </span>
           </p>
 

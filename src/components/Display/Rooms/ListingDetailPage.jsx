@@ -13,6 +13,15 @@ import ImgApt from "../../../assets/img/apt-kitchen.png";
 import userPic from "../../../assets/img/user-pic.png";
 
 export default function ListingDetailPage() {
+  const formatName = (name) =>
+    name
+      ? name
+          .split(" ")
+          .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          )
+          .join(" ")
+      : "";
   const { id } = useParams(); // Get the room ID from the URL
   const { rooms, loading, error, fetchRooms } = useContext(DataContext);
 
@@ -25,16 +34,12 @@ export default function ListingDetailPage() {
     return (
       <p className="text-center p-8 text-red-500">
         Error: {error}{" "}
-        <button
-          onClick={fetchRooms}
-          className="ml-2 text-blue-500 underline"
-        >
+        <button onClick={fetchRooms} className="ml-2 text-blue-500 underline">
           Retry
         </button>
       </p>
     );
-  if (!room)
-    return <p className="text-center p-8">Room not found.</p>;
+  if (!room) return <p className="text-center p-8">Room not found.</p>;
 
   // Map Appwrite room data to listing structure
   const listing = {
@@ -135,8 +140,8 @@ export default function ListingDetailPage() {
         {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
         <aside className="bg-white rounded-lg shadow p-4 space-y-4 h-fit">
           <div>
-            <p className="text-3xl font-extrabold text-custom-primary">$
-              {usd(listing.price)}
+            <p className="text-3xl font-extrabold text-custom-primary">
+              ${usd(listing.price)}
               <span className="ml-1 text-base font-normal text-gray-600">
                 FOR RENT
               </span>

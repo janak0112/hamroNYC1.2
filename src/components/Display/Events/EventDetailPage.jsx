@@ -17,7 +17,6 @@ function EventDetailPage() {
   const [imageUrl, setImageUrl] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [manager, setManager] = useState({});
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -34,8 +33,6 @@ function EventDetailPage() {
           const urls = getImageUrls(res.imageIds);
           setImageUrl(urls); // ✅ now an array of URLs
         }
-        const postAdmin = await getUserById(res.userId);
-        setManager(postAdmin);
       } catch (err) {
         console.error(err);
         setError("Failed to load event.");
@@ -55,9 +52,7 @@ function EventDetailPage() {
       </p>
     );
 
-  return (
-    <EventDetailContent event={event} imageUrl={imageUrl} manager={manager} />
-  );
+  return <EventDetailContent event={event} imageUrl={imageUrl} />;
 }
 
 export default EventDetailPage;

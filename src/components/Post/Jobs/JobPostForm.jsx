@@ -30,7 +30,7 @@ const JobPostForm = () => {
     },
   });
 
-  const [userId, setUser] = useState(null);
+  const [userId, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -46,7 +46,7 @@ const JobPostForm = () => {
       try {
         const currentUser = await authService.getCurrentUser();
         if (currentUser) {
-          setUser(currentUser.$id);
+          setUser({ id: currentUser.$id, name: currentUser.name });
         } else {
           navigate("/login");
         }
@@ -91,7 +91,7 @@ const JobPostForm = () => {
         jobLink: data.jobLink || null,
         checkOnly: data.checkOnly,
         imageIds: uploadedImageIds,
-        userId,
+        postedBy: JSON.stringify(userId),
         publish: true,
       };
 
@@ -149,7 +149,10 @@ const JobPostForm = () => {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-semibold mb-2"
+          >
             Description
           </label>
           <textarea
@@ -200,7 +203,10 @@ const JobPostForm = () => {
 
         {/* Location */}
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="location"
+            className="block text-sm font-semibold mb-2"
+          >
             Location
           </label>
           <input
@@ -247,7 +253,10 @@ const JobPostForm = () => {
 
         {/* Contact Email */}
         <div>
-          <label htmlFor="contactEmail" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="contactEmail"
+            className="block text-sm font-semibold mb-2"
+          >
             Contact Email
           </label>
           <input

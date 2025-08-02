@@ -13,7 +13,7 @@ const MarketPostForm = () => {
     formState: { errors },
   } = useForm();
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
@@ -25,7 +25,7 @@ const MarketPostForm = () => {
       try {
         const currentUser = await authService.getCurrentUser();
         if (currentUser) {
-          setUser(currentUser.$id);
+          setUser({ id: currentUser.$id, name: currentUser.name });
         } else {
           navigate("/login");
         }
@@ -68,10 +68,9 @@ const MarketPostForm = () => {
         contact: data.contact,
         condition: data.condition,
         imageIds: uploadedImageIds,
-        userId: user,
+        postedBy: JSON.stringify(user),
         publish: true,
       };
-      console.log(conf.appWriteCollectionIdMarket);
       await listingService.createDocument(
         marketData,
         conf.appWriteCollectionIdMarket
@@ -112,7 +111,10 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-semibold mb-2"
+          >
             Description
           </label>
           <textarea
@@ -145,7 +147,10 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="location" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="location"
+            className="block text-sm font-semibold mb-2"
+          >
             Location
           </label>
           <input
@@ -177,7 +182,10 @@ const MarketPostForm = () => {
         </div>
 
         <div>
-          <label htmlFor="condition" className="block text-sm font-semibold mb-2">
+          <label
+            htmlFor="condition"
+            className="block text-sm font-semibold mb-2"
+          >
             Condition
           </label>
           <select
