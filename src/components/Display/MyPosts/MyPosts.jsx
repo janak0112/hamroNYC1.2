@@ -1,52 +1,68 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { DataContext } from "../../../context/DataContext";
-import CategoryTiles from "./../CategoriesTiles/CategoriesTiles";
 import PostSection from "../../../pages/Home/Components/PostSection";
-import Footer from "../../../pages/Home/Components/Footer";
 
 const MyPosts = () => {
     const { jobs, rooms, market, events, loading, error } =
         useContext(DataContext);
 
-    // Get logged-in user's ID from Appwrite session (provided in DataContext)
-    // const loggedInUserId = user?.$id;
-    const loggedInUserId = "687a850100101f0c50bf";
+    const { slug } = useParams(); // ✅ get slug from URL
+    const loggedInUserId = "687a850100101f0c50bf"; // Replace later with session user
 
-    console.log(loggedInUserId)
+    const [filtered, setFiltered] = useState({
+        jobs: [],
+        rooms: [],
+        market: [],
+        events: [],
+    });
+
+    const filterByUser = (list, userId) =>
+        list?.filter(post => {
+            try {
+                return JSON.parse(post.postedBy).id === userId;
+            } catch {
+                return false;
+            }
+        }) || [];
+
+    useEffect(() => {
+        if (!loading && loggedInUserId) {
+            setFiltered({
+                jobs: filterByUser(jobs, loggedInUserId),
+                rooms: filterByUser(rooms, loggedInUserId),
+                market: filterByUser(market, loggedInUserId),
+                events: filterByUser(events, loggedInUserId),
+            });
+            console.log("Slug changed:", slug);
+        }
+    }, [slug, jobs, rooms, market, events, loggedInUserId, loading]); 
+    // ✅ re-run when slug changes
 
     if (loading) return <p>Loading...</p>;
-    // if (!user) return <p>Please log in to view your posts.</p>;
-
-    // Filter posts created by this user
-    const filteredJobs = jobs?.filter(post => post.userId === loggedInUserId);
-    const filteredRooms = rooms?.filter(post => post.user === loggedInUserId);
-    const filteredMarket = market?.filter(post => post.userId === loggedInUserId);
-    const filteredEvents = events?.filter(post => post.userId === loggedInUserId);
 
     const items = [
-        { data: filteredJobs, title: "Jobs", link: "/jobs" },
-        { data: filteredRooms, title: "Rooms", link: "/rooms" },
-        { data: filteredMarket, title: "Market", link: "/market" },
-        { data: filteredEvents, title: "Events", link: "/events" },
+        { data: filtered.jobs, title: "Jobs", link: "/jobs" },
+        { data: filtered.rooms, title: "Rooms", link: "/rooms" },
+        { data: filtered.market, title: "Market", link: "/market" },
+        { data: filtered.events, title: "Events", link: "/events" },
     ];
 
     return (
         <div className="space-y-6 mt-10">
-            {/* <CategoryTiles /> */}
-
-            {items.map((item, i) =>
-                item.data && item.data.length > 0 ? (
-                    <PostSection
-                        key={i}
-                        title={`My ${item.title}`}
-                        data={item.data}
-                        loading={loading}
-                        error={error}
-                        link={item.link}
-                    />
-                ) : null
+            {items.map(
+                (item, i) =>
+                    item.data.length > 0 && (
+                        <PostSection
+                            key={i}
+                            title={`My ${item.title}`}
+                            data={item.data}
+                            loading={loading}
+                            error={error}
+                            link={`/my-posts/${item.link}`}
+                        />
+                    )
             )}
-
         </div>
     );
 };
