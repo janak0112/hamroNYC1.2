@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import authService from "../../appwrite/auth";
 
-function Header({ref}) {
+function Header({ ref }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -15,16 +15,20 @@ function Header({ref}) {
     { name: "Room", path: "/rooms" },
     { name: "Market", path: "/market" },
     { name: "Events", path: "/events" },
-    { name: "Post Your Listing", path: "/post-listing" },
-    { name: "My Posts", path: "/my-posts" },
+    { name: "Post Your Listing", path: "/post-listing", logOut: true },
+    { name: "My Posts", path: "/my-posts", logOut: true },
   ];
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const user = await authService.getCurrentUser();
-        localStorage.setItem("userId", user.$id);
-        setIsLoggedIn(!!user);
+        if (user) {
+          localStorage.setItem("userId", user.$id);
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
       } catch (err) {
         console.error("User fetch error:", err);
         setIsLoggedIn(false);
@@ -38,7 +42,7 @@ function Header({ref}) {
     setIsLoading(true);
     try {
       await authService.logout();
-      setIsLoggedIn(false);
+      setIsLoggedIn(false); // ✅ this hides logged-in-only links
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
@@ -52,7 +56,11 @@ function Header({ref}) {
   const activeStyle = "text-red-600 border-b-2 border-red-600"; // ✅ active link styling
 
   return (
-    <header ref={ref} className="flex items-center justify-between bg-white shadow-sm p-4 md:p-6 w-full">
+    <header
+      ref={ref}
+      className="flex items-center justify-between bg-white shadow-sm p-4 md:p-6 w-full"
+    >
+      {/* Logo */}
       <Link to="/" className="flex items-center">
         <img
           src="/img/logo.png"
@@ -62,27 +70,37 @@ function Header({ref}) {
         <span className="text-3xl font-bold custom-primary">HamroNYC.com</span>
       </Link>
 
+      {/* Navigation */}
       <nav className="flex items-center space-x-6">
-        {categories.map(({ name, path }) => (
-          <Link
-            key={name}
-            to={path}
-            className={`${linkStyle} ${location.pathname === path ? activeStyle : ""
+        {categories.map(({ name, path, logOut }) => {
+          if (logOut && !isLoggedIn) return null; // hide if requires login
+          return (
+            <Link
+              key={name}
+              to={path}
+              className={`${linkStyle} ${
+                location.pathname === path ? activeStyle : ""
               }`}
-          >
-            {name}
-          </Link>
-        ))}
+            >
+              {name}
+            </Link>
+          );
+        })}
 
-        <Link
-          to="/profile"
-          className={`${linkStyle} ${location.pathname === "/profile" ? activeStyle : ""
+        {/* Profile (only visible when logged in) */}
+        {isLoggedIn && (
+          <Link
+            to="/profile"
+            className={`${linkStyle} ${
+              location.pathname === "/profile" ? activeStyle : ""
             }`}
-        >
-          Profile
-        </Link>
+          >
+            Profile
+          </Link>
+        )}
 
-        {!isLoggedIn && (
+        {/* Auth Buttons */}
+        {!isLoggedIn ? (
           <>
             <Link
               to="/login"
@@ -97,9 +115,7 @@ function Header({ref}) {
               Sign Up
             </Link>
           </>
-        )}
-
-        {isLoggedIn && (
+        ) : (
           <button
             onClick={handleLogout}
             className="text-sm text-white font-bold custom-primary-bg rounded-md px-4 py-2 custom-primary-bg-hover"
