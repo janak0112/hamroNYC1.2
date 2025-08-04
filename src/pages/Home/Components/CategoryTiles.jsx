@@ -1,7 +1,7 @@
 // components/CategoryTiles.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import { Briefcase, Home, ShoppingCart, Calendar } from "lucide-react";
+import { Briefcase, Home, ShoppingCart, Calendar, Plane } from "lucide-react";
 
 const categories = [
   {
@@ -28,6 +28,12 @@ const categories = [
     icon: <Calendar size={50} />,
     link: "/events",
   },
+  {
+    name: "Travel Companions",
+    description: "Find travel companions to travel together",
+    icon: <Plane size={50} />,
+    link: "/travel-ompanions",
+  },
 ];
 
 const CategoryTiles = () => (
@@ -40,7 +46,9 @@ const CategoryTiles = () => (
         >
           <Link to={category.link} className="block p-6 text-center">
             <div className="flex items-center justify-center flex-col gap-2 mb-4">
-              <div className="text-[rgb(205,74,61)] flex items-center">{category.icon}</div>
+              <div className="text-[rgb(205,74,61)] flex items-center">
+                {category.icon}
+              </div>
               <h3 className="text-xl font-semibold">{category.name}</h3>
             </div>
             <p className="mt-2 text-gray-500">{category.description}</p>
