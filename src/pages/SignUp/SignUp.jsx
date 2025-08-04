@@ -43,7 +43,7 @@ function SignUp() {
 
   const handleGoogleSignUp = async () => {
     try {
-      await authService.googleLogin();
+      await authService.loginWithGoogle();
       navigate("/");
     } catch (error) {
       setErrorMessage(error.message || "Failed to sign up with Google.");
@@ -52,7 +52,7 @@ function SignUp() {
 
   const handleFacebookSignUp = async () => {
     try {
-      await authService.facebookLogin();
+      await authService.loginWithFacebook();
       navigate("/");
     } catch (error) {
       setErrorMessage(error.message || "Failed to sign up with Facebook.");

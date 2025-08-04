@@ -2,7 +2,7 @@
 import React from "react";
 import { Phone, MapPin, CalendarClock, CheckCircle, User } from "lucide-react";
 import { Link } from "react-router-dom";
-import MarketImg from "../../../assets/img/market-item.png";
+import MarketImg from "../../../assets/img/no-image.png";
 
 const MarketDetailContent = ({ item, imageUrl }) => {
   const formatName = (name) =>
@@ -18,12 +18,15 @@ const MarketDetailContent = ({ item, imageUrl }) => {
   return (
     <div className="container mx-auto px-6 py-20">
       {/* Hero Image */}
-      {imageUrl || MarketImg ? (
+      {imageUrl ? (
         <div className="w-full mb-8">
           <img
-            src={imageUrl || MarketImg}
+            src={imageUrl}
             alt={item.title}
             className="w-full max-h-[400px] object-cover rounded-xl shadow-lg"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
           />
         </div>
       ) : null}

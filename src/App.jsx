@@ -7,6 +7,7 @@ import Layout from "./pages/Layout/Layout";
 import HomePage from "./pages/Home/HomePage"; // Correct import for your Home page
 import PostListing from "./pages/PostListing/PostListing";
 import RoomDetailPage from "./components/Display/Rooms/RoomDetailPage";
+import MyProfile from "./pages/Profile/MyProfile";
 import { DataProvider } from "./context/DataContext";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
@@ -34,7 +35,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="signup" element={<SignUp />} />
               <Route path="login" element={<LogIn />} />
-
+              <Route path="/profile" element={<MyProfile />} />
               <Route path="my-posts" element={<MyPosts />} />
 
               <Route path="post-listing" element={<PostListing />} />

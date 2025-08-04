@@ -45,11 +45,7 @@ function LogIn() {
   const handleGoogleLogin = async () => {
     try {
       // Replace with your authService method for Google login
-      await account.createOAuth2Session(
-        "google",
-        "http://localhost:5173/",
-        "http://localhost:5173/fail"
-      );
+      await authService.loginWithGoogle();
 
       navigate("/");
     } catch (error) {
@@ -60,7 +56,7 @@ function LogIn() {
 
   const handleFacebookLogin = async () => {
     try {
-      await authService.facebookLogin(); // Replace with your service method
+      await authService.loginWithFacebook(); // Replace with your service method
       navigate("/");
     } catch (error) {
       console.error("Facebook Login Error:", error);

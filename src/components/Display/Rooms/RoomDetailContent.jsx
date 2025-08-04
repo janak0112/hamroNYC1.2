@@ -17,7 +17,7 @@ function RoomDetailContent({ room, imageUrl }) {
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
 
   return (
-    <div className="container mx-auto px-6 py-20">
+    <div className="container mx-auto px-6 py-20 content-wrapper">
       {/* Image Gallery */}
       {imageUrls.length > 0 && (
         <Fancybox options={{ Carousel: { infinite: false } }}>

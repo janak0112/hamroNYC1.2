@@ -1,16 +1,14 @@
 import React, { useState, useCallback, useContext } from "react";
-import { DataContext } from "../../../context/DataContext";
 import { MapPin, Calendar, Clock, DollarSign, Briefcase } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import ImgApt from "../../../assets/img/no-image.jpg";
+import ImgApt from "../../../assets/img/no-image.png";
 import { getImageUrls } from "../../../utils/uploadFile";
+import { DataContext } from "../../../context/DataContext";
 
 export default function ListingList() {
   const { type } = useParams();
   const { jobs, market, events, rooms, loading, error } =
     useContext(DataContext);
-  console.log("first");
-  // Dynamically pick dataset from context
   const dataMap = { jobs, market, events, rooms };
   const listings = dataMap[type] || [];
 
@@ -31,7 +29,7 @@ export default function ListingList() {
         All {type}
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
         {listings.map((item) => {
           const active = activeImages[item.$id] || 0;
           const images = item.imageIds?.length
@@ -41,7 +39,7 @@ export default function ListingList() {
           return (
             <div
               key={item.$id}
-              className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition-all"
+              className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition-all flex flex-col h-full"
             >
               {/* Header */}
               <div className="p-4">
@@ -61,6 +59,9 @@ export default function ListingList() {
                   src={images[active]}
                   alt={item.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = ImgApt;
+                  }}
                 />
                 <span className="absolute top-2 right-2 text-xs bg-black/60 text-white px-2 py-0.5 rounded">
                   {active + 1}/{images.length}
@@ -83,6 +84,9 @@ export default function ListingList() {
                         src={src}
                         alt="thumbnail"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = ImgApt;
+                        }}
                       />
                     </button>
                   ))}
@@ -90,7 +94,7 @@ export default function ListingList() {
               )}
 
               {/* Details Section */}
-              <div className="p-4 space-y-3">
+              <div className="p-4 space-y-3 flex-1">
                 <ul className="text-sm text-gray-700 divide-y divide-gray-100">
                   {type === "events" && (
                     <>
@@ -165,15 +169,15 @@ export default function ListingList() {
               </div>
 
               {/* Description */}
-              <div className="p-4 border-t border-gray-100">
+              <div className="p-4 border-t border-gray-100 flex-1">
                 <h3 className="text-sm font-semibold mb-2">Description</h3>
                 <p className="text-sm text-gray-800 leading-relaxed line-clamp-3">
                   {item.description}
                 </p>
               </div>
 
-              {/* View More Button */}
-              <div className="p-4 border-t border-gray-100">
+              {/* View More Button pinned bottom */}
+              <div className="mt-auto p-4 border-t border-gray-100">
                 <Link
                   to={`/${type}/${item.$id}`}
                   className="w-full flex items-center justify-center bg-[rgba(212,17,56,1)] hover:bg-[rgba(180,15,48,1)] text-white rounded-md py-2 text-sm font-semibold transition"

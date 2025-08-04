@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import authService from "../../appwrite/auth";
+import logo from "../../assets/img/logo.png";
 
 function Header({ ref }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -62,12 +63,12 @@ function Header({ ref }) {
     >
       {/* Logo */}
       <Link to="/" className="flex items-center">
-        <img
-          src="/img/logo.png"
+        {/* <img
+          src={logo}
           alt="Nepali Connect NYC"
-          className="w-10 h-10 rounded-full mr-3 object-contain"
-        />
-        <span className="text-3xl font-bold custom-primary">HamroNYC.com</span>
+          className="w-20 h-20  mr-3 object-contain"
+        /> */}
+        <span className="text-3xl font-bold custom-primary">hamroNYC.com</span>
       </Link>
 
       {/* Navigation */}

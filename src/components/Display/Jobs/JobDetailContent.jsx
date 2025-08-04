@@ -12,20 +12,20 @@ function JobDetailContent({ job, imageUrl }) {
           )
           .join(" ")
       : "";
-
+  console.log("imageUrl:" + imageUrl);
   return (
     <div className="container mx-auto px-6 py-20">
       {/* Hero Image */}
-      {imageUrl && (
-        <div className="w-full mb-8">
-          <img
-            src={imageUrl}
-            alt={job.title}
-            className="w-full max-h-[400px] object-cover rounded-xl shadow-lg"
-          />
-        </div>
-      )}
-
+      <div className="w-full mb-8">
+        <img
+          src={imageUrl}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+          alt={job.title}
+          className="w-full max-h-[400px] object-cover rounded-xl shadow-lg"
+        />
+      </div>
       {/* Job Title & Company */}
       <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
         {job.title}
@@ -33,7 +33,6 @@ function JobDetailContent({ job, imageUrl }) {
       <h2 className="text-xl text-gray-600 font-medium">
         {job.company || "Company not listed"}
       </h2>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
         {/* Left Column */}
         <div className="col-span-2 space-y-8">
