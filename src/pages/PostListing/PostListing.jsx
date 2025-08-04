@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { House, BriefcaseBusiness, ShoppingCart, CalendarDays } from 'lucide-react';
+import { House, BriefcaseBusiness, ShoppingCart, CalendarDays,Plane } from 'lucide-react';
 
 const AddPostPage = () => {
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ const AddPostPage = () => {
       case "event":
         navigate("/add-event"); // Navigate to event post form
         break;
+      case "travel companions":
+        navigate("/add-travel-companions"); // Navigate to event post form
+        break;
       default:
         break;
     }
@@ -31,7 +34,7 @@ const AddPostPage = () => {
         Choose a Category to Add a Post
       </h2>
 
-      <div className="grid grid-cols-2 gap-10">
+      <div className="grid grid-cols-2 gap-10 justify-center">
         {/* Room Option */}
         <div
           className="flex items-center justify-center p-6 border border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
@@ -83,6 +86,20 @@ const AddPostPage = () => {
             <div className="flex flex-col align-middle justify-center">
               <h3 className="text-lg font-semibold">Event</h3>
               <p className="text-sm text-gray-500">Post an event</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Travel Option */}
+        <div
+          className="flex items-center justify-center p-6 border border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
+          onClick={() => handlePostTypeSelection("event")}
+        >
+          <div className="flex gap-4 align-middle">
+            <Plane width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <div className="flex flex-col align-middle justify-center">
+              <h3 className="text-lg font-semibold">Travel Companions</h3>
+              <p className="text-sm text-gray-500">Post Travel Companions</p>
             </div>
           </div>
         </div>

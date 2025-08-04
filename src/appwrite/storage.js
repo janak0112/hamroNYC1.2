@@ -1,6 +1,7 @@
 import { Client, Storage, ID } from "appwrite";
 import conf from "../conf/conf";
 
+
 // Initialize Appwrite Client and Storage
 const client = new Client();
 const storage = new Storage(client);

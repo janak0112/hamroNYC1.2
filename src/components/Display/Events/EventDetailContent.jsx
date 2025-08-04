@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import {
   Phone,
@@ -8,13 +8,30 @@ import {
   CheckCircle,
   Globe,
   Ticket,
+  Edit,
+  Trash
 } from "lucide-react";
 import Fancybox from "../../FancyBox/fancyBox";
+import { DataContext } from "../../../context/DataContext";
 
 function EventDetailContent({ event, imageUrl }) {
   console.log(event);
   // Ensure imageUrl is always an array
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
+
+
+  const { authUser } = useContext(DataContext);
+
+  console.log("event", event)
+  console.log("event", authUser)
+
+  // Check if logged-in user is the owner
+  const isOwner =
+    authUser &&
+    event.postedBy &&
+    JSON.parse(event.postedBy).id === authUser;
+
+  console.log(isOwner)
 
   return (
     <div className="container mx-auto px-6 py-20">
@@ -38,14 +55,35 @@ function EventDetailContent({ event, imageUrl }) {
         <div className="col-span-2 space-y-6">
           {/* Event Mode Badge */}
           <span
-            className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${
-              event.eventMode === "online"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-green-100 text-green-700"
-            }`}
+            className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${event.eventMode === "online"
+              ? "bg-blue-100 text-blue-700"
+              : "bg-green-100 text-green-700"
+              }`}
           >
             {event.eventMode === "online" ? "Online Event" : "In-Person Event"}
           </span>
+
+          {/* Edit/Delete Buttons - Only if owner */}
+          {isOwner && (
+            <div className="flex gap-4 mt-8">
+              {/* Edit as a Link */}
+              <Link
+                to={`/event-edit/${event.$id}`}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+              >
+                <Edit size={18} /> Edit
+              </Link>
+
+              {/* Delete stays a button */}
+              <button
+                onClick={() => handleDelete(event.$id)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+              >
+                <Trash size={18} /> Delete
+              </button>
+            </div>
+          )}
+
 
           {/* Date & Time */}
           <div className="flex items-center space-x-6 text-gray-600 mt-4">
@@ -54,10 +92,10 @@ function EventDetailContent({ event, imageUrl }) {
               <span>
                 {event.eventDate
                   ? new Date(event.eventDate).toLocaleDateString([], {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })
                   : "Date not provided"}
               </span>
             </div>
@@ -66,11 +104,11 @@ function EventDetailContent({ event, imageUrl }) {
               <span>
                 {event.eventTime
                   ? new Date(
-                      `1970-01-01T${event.eventTime}`
-                    ).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
+                    `1970-01-01T${event.eventTime}`
+                  ).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                   : "Time not provided"}
               </span>
             </div>
@@ -105,8 +143,8 @@ function EventDetailContent({ event, imageUrl }) {
                 {event.ticketOption === "free"
                   ? "Free Entry"
                   : event.ticketOption === "paid"
-                  ? `Paid Event - $${event.ticketCost}`
-                  : "Ticket info not provided"}
+                    ? `Paid Event - $${event.ticketCost}`
+                    : "Ticket info not provided"}
               </span>
             </div>
             {event.ticketLink && (
@@ -159,13 +197,13 @@ function EventDetailContent({ event, imageUrl }) {
             <span className="font-medium text-gray-700">
               {event.postedBy
                 ? JSON.parse(event.postedBy)
-                    .name.split(" ")
-                    .map(
-                      (word) =>
-                        word.charAt(0).toUpperCase() +
-                        word.slice(1).toLowerCase()
-                    )
-                    .join(" ")
+                  .name.split(" ")
+                  .map(
+                    (word) =>
+                      word.charAt(0).toUpperCase() +
+                      word.slice(1).toLowerCase()
+                  )
+                  .join(" ")
                 : ""}
             </span>
           </p>

@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useCallback } from "react";
-import { Client, Databases, Storage } from "appwrite";
+import { Client, Databases, Storage, Account } from "appwrite";
 import conf from "../conf/conf";
+import { getCurrentUser } from "../appwrite/auth";
 
 export const DataContext = createContext();
 
@@ -12,6 +13,7 @@ export const DataProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
 
   const client = new Client()
     .setEndpoint(conf.appWriteUrl)
@@ -26,6 +28,17 @@ export const DataProvider = ({ children }) => {
     { type: "market", id: conf.appWriteCollectionIdMarket },
     { type: "events", id: conf.appWriteCollectionIdEvents },
   ];
+
+  // Fetch logged-in user via your auth helper
+  const fetchUser = useCallback(async () => {
+    const user = await getCurrentUser();
+    if (user) {
+      console.log("Logged in user:", user);
+      setAuthUser(user.$id);
+    } else {
+      setAuthUser(null);
+    }
+  }, []);
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -58,7 +71,8 @@ export const DataProvider = ({ children }) => {
 
   useEffect(() => {
     fetchAllData();
-  }, [fetchAllData]);
+    fetchUser()
+  }, [fetchAllData,fetchUser]);
 
   return (
     <DataContext.Provider
@@ -70,6 +84,7 @@ export const DataProvider = ({ children }) => {
         events, // only events
         loading,
         error,
+        authUser,
         fetchAllData,
       }}
     >

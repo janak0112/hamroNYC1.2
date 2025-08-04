@@ -4,11 +4,11 @@ import { DataContext } from "../../../context/DataContext";
 import PostSection from "../../../pages/Home/Components/PostSection";
 
 const MyPosts = () => {
-    const { jobs, rooms, market, events, loading, error } =
+    const { jobs, rooms, market, events, loading, error,authUser } =
         useContext(DataContext);
 
     const { slug } = useParams(); // ✅ get slug from URL
-    const loggedInUserId = "687a850100101f0c50bf"; // Replace later with session user
+    const loggedInUserId = authUser; // Replace later with session user
 
     const [filtered, setFiltered] = useState({
         jobs: [],
