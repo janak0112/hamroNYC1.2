@@ -32,7 +32,7 @@ const categories = [
     name: "Travel Companions",
     description: "Find travel companions to travel together",
     icon: <Plane size={50} />,
-    link: "/travel-companions",
+    link: "/travel",
   },
 ];
 

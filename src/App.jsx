@@ -10,6 +10,7 @@ import RoomDetailPage from "./components/Display/Rooms/RoomDetailPage";
 import MyProfile from "./pages/Profile/MyProfile";
 import { DataProvider } from "./context/DataContext";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
+import TravelCompanions from "./components/Display/TravelCompanions/TravelCompanions";
 
 import {
   JobPostForm,
@@ -40,6 +41,7 @@ function App() {
               <Route path="my-posts" element={<MyPosts />} />
 
               <Route path="post-listing" element={<PostListing />} />
+              <Route path="travel" element={<TravelCompanions />} />
 
               {/* JOBS */}
 
