@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import { Client, Databases, Storage, Account } from "appwrite";
 import conf from "../conf/conf";
 import { getCurrentUser } from "../appwrite/auth";
+// import { deleteDocument } from "../appwrite/config"
 
 export const DataContext = createContext();
 
@@ -69,10 +70,30 @@ export const DataProvider = ({ children }) => {
     }
   }, []);
 
+  // DELETE DOCUMENT
+
+  const handleDeleteDocument = async (collectionId, documentId) => {
+    try {
+      await databases.deleteDocument(
+        conf.appWriteDatabaseId,
+        collectionId,
+        documentId
+      );
+      console.log("✅ Document deleted:", documentId);
+      await fetchAllData(); // Refresh data after deletion
+    } catch (error) {
+      console.error("❌ Error deleting document:", error);
+      setError(error.message);
+      throw error; // Optional: Rethrow to allow components to handle errors
+    }
+  };
+
+
+
   useEffect(() => {
     fetchAllData();
     fetchUser()
-  }, [fetchAllData,fetchUser]);
+  }, [fetchAllData, fetchUser]);
 
   return (
     <DataContext.Provider
@@ -86,6 +107,7 @@ export const DataProvider = ({ children }) => {
         error,
         authUser,
         fetchAllData,
+        handleDeleteDocument
       }}
     >
       {children}

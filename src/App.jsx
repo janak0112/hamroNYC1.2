@@ -51,7 +51,7 @@ function App() {
               {/* EVENTS */}
               <Route path="add-event" element={<EventPostForm />} />
               <Route path="events/:id" element={<EventDetailPage />} />
-              <Route path="event-edit/:id" element={<EventEditForm />} />
+              <Route path="events-edit/:id" element={<EventEditForm />} />
 
               {/* ROOMS */}
               <Route path="add-room" element={<RoomPostForm />} />

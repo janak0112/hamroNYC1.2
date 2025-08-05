@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Phone,
   MapPin,
@@ -14,24 +14,25 @@ import {
 import Fancybox from "../../FancyBox/fancyBox";
 import { DataContext } from "../../../context/DataContext";
 
+
 function EventDetailContent({ event, imageUrl }) {
   console.log(event);
   // Ensure imageUrl is always an array
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
 
 
-  const { authUser } = useContext(DataContext);
+  // const { authUser } = useContext(DataContext);
 
-  console.log("event", event)
-  console.log("event", authUser)
 
   // Check if logged-in user is the owner
-  const isOwner =
-    authUser &&
-    event.postedBy &&
-    JSON.parse(event.postedBy).id === authUser;
+  // const isOwner =
+  //   authUser &&
+  //   event.postedBy &&
+  //   JSON.parse(event.postedBy).id === authUser;
 
-  console.log(isOwner)
+  // console.log(isOwner)
+
+
 
   return (
     <div className="container mx-auto px-6 py-20">
@@ -64,25 +65,25 @@ function EventDetailContent({ event, imageUrl }) {
           </span>
 
           {/* Edit/Delete Buttons - Only if owner */}
-          {isOwner && (
-            <div className="flex gap-4 mt-8">
+          {/* {isOwner && (
+            <div className="flex gap-4 mt-8"> */}
               {/* Edit as a Link */}
-              <Link
+              {/* <Link
                 to={`/event-edit/${event.$id}`}
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
               >
                 <Edit size={18} /> Edit
-              </Link>
+              </Link> */}
 
               {/* Delete stays a button */}
-              <button
-                onClick={() => handleDelete(event.$id)}
+              {/* <button
+                onClick={handleDeleteEvent}
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
               >
                 <Trash size={18} /> Delete
               </button>
             </div>
-          )}
+          )} */}
 
 
           {/* Date & Time */}

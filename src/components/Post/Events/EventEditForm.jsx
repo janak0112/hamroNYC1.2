@@ -8,6 +8,7 @@ import { Storage } from "appwrite";
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
+
 const EventEditForm = () => {
   const {
     register,
@@ -17,6 +18,8 @@ const EventEditForm = () => {
     reset,
   } = useForm();
 
+
+
   const [postedBy, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -25,7 +28,7 @@ const EventEditForm = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [eventDoc, setEventDoc] = useState(null);
 
-  console.log("existingImages",existingImages)
+  console.log("existingImages", existingImages)
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -83,7 +86,7 @@ const EventEditForm = () => {
           });
           setExistingImages(urls);
         }
-        
+
       } catch (error) {
         console.error("❌ Failed to fetch event:", error);
         setErrorMessage("Could not load event data.");
@@ -144,6 +147,9 @@ const EventEditForm = () => {
       setIsSubmitting(false);
     }
   };
+
+
+
 
   return (
     <div className="container mx-auto px-6 py-20">
