@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import listingService from "../../../appwrite/config"; // Adjust the path as needed
-import authService from "../../../appwrite/auth"; // Adjust path for auth service
+import { useNavigate, useParams } from "react-router-dom";
+import listingService from "../../../appwrite/config";
+import authService from "../../../appwrite/auth";
 import Modal from "../../Modals/Modal";
-import { uploadImages } from "../../../utils/uploadFile"; // Utility function
+import { uploadImages } from "../../../utils/uploadFile";
+import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
 
-const RoomPostForm = () => {
+const RoomEditForm = () => {
   const {
     register,
     handleSubmit,
@@ -21,7 +22,10 @@ const RoomPostForm = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [roomItem, setRoomItem] = useState(null);
   const navigate = useNavigate();
+  const { id } = useParams();
 
   // Check if the user is logged in
   useEffect(() => {
@@ -41,9 +45,52 @@ const RoomPostForm = () => {
     checkUser();
   }, [navigate]);
 
+  // Fetch existing room data
+  useEffect(() => {
+    const fetchRoom = async () => {
+      try {
+        const room = await listingService.getDocument(
+          conf.appWriteCollectionIdRooms,
+          id
+        );
+
+        setRoomItem(room);
+
+        if (room) {
+          reset({
+            title: room.title,
+            description: room.description,
+            price: room.price,
+            location: room.location,
+            contact: room.contact,
+            bedrooms: room.bedrooms,
+            bathrooms: room.bathrooms,
+            furnishing: room.furnishing,
+            availableFrom: room.availableFrom?.split("T")[0],
+            isStudio: room.isStudio,
+            utilitiesIncluded: room.utilitiesIncluded,
+          });
+
+          setIsStudio(room.isStudio);
+
+          if (room.imageIds?.length > 0) {
+            const previews = room.imageIds.map((fileId) =>
+              getFilePreview(fileId, 300, 300)
+            );
+            setExistingImages(previews);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching room:", error);
+        setShowErrorModal(true);
+      }
+    };
+
+    if (id) fetchRoom();
+  }, [id, reset]);
+
   const onSubmit = async (data) => {
     if (!user) {
-      // You can open the error modal here as well
       setShowErrorModal(true);
       return;
     }
@@ -69,28 +116,29 @@ const RoomPostForm = () => {
         availableFrom: data.availableFrom,
         isStudio: Boolean(data.isStudio),
         utilitiesIncluded: data.utilitiesIncluded,
-        imageIds: uploadedImageIds,
+        imageIds:
+          uploadedImageIds.length > 0
+            ? uploadedImageIds
+            : roomItem?.imageIds || [],
         postedBy: JSON.stringify(user),
         publish: true,
       };
 
-      const response = await listingService.createDocument(
+      const response = await listingService.updateDocument(
+        conf.appWriteCollectionIdRooms,
+        id,
         roomData,
-        conf.appWriteCollectionIdRooms
       );
+     
 
-      // Clear the form and update states after success
-      reset();
-      setIsStudio(false);
       setShowSuccessModal(true);
 
-      // Optional: Redirect after a delay
-      // setTimeout(() => {
-      //   setShowSuccessModal(false);
-      //   navigate("/rooms");
-      // }, 3000);
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        navigate(`/rooms/${id}`);
+      }, 3000);
     } catch (error) {
-      console.error("Error creating room listing:", error);
+      console.error("Error updating room listing:", error);
       setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
@@ -98,27 +146,25 @@ const RoomPostForm = () => {
   };
 
   const handleStudioChange = (e) => {
-    const value = e.target.value === "true"; // Convert the string value to a boolean
+    const value = e.target.value === "true";
     setIsStudio(value);
-
-    // Reset the values of bedrooms and bathrooms if studio is selected
     if (value) {
-      setValue("bedrooms", 1); // Set default value for studio
-      setValue("bathrooms", 1); // Set default value for studio
+      setValue("bedrooms", 1);
+      setValue("bathrooms", 1);
     }
   };
 
   return (
     <div className="container mx-auto px-6 py-20">
       <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
-        Create Room Listing
+        Edit Room Listing
       </h2>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="max-w-xl mx-auto space-y-4"
       >
-        {/* -- Form fields remain the same -- */}
+        {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-semibold mb-2">
             Title
@@ -135,6 +181,7 @@ const RoomPostForm = () => {
           )}
         </div>
 
+        {/* Description */}
         <div>
           <label
             htmlFor="description"
@@ -155,6 +202,7 @@ const RoomPostForm = () => {
           )}
         </div>
 
+        {/* Price */}
         <div>
           <label htmlFor="price" className="block text-sm font-semibold mb-2">
             Price (per month)
@@ -171,6 +219,7 @@ const RoomPostForm = () => {
           )}
         </div>
 
+        {/* Location */}
         <div>
           <label
             htmlFor="location"
@@ -190,6 +239,7 @@ const RoomPostForm = () => {
           )}
         </div>
 
+        {/* Contact */}
         <div>
           <label htmlFor="contact" className="block text-sm font-semibold mb-2">
             Contact Info
@@ -206,6 +256,7 @@ const RoomPostForm = () => {
           )}
         </div>
 
+        {/* Bedrooms & Bathrooms */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label
@@ -217,18 +268,14 @@ const RoomPostForm = () => {
             <input
               id="bedrooms"
               type="number"
-              placeholder="Number of Bedrooms"
-              {...register("bedrooms", {
-                required: "Number of bedrooms is required",
-                disabled: isStudio,
-              })}
+              disabled={isStudio}
+              {...register("bedrooms", { required: !isStudio })}
               className="w-full p-2 border border-gray-300 rounded-md"
             />
             {errors.bedrooms && (
               <p className="text-red-500 text-xs">{errors.bedrooms.message}</p>
             )}
           </div>
-
           <div>
             <label
               htmlFor="bathrooms"
@@ -239,11 +286,8 @@ const RoomPostForm = () => {
             <input
               id="bathrooms"
               type="number"
-              placeholder="Number of Bathrooms"
-              {...register("bathrooms", {
-                required: "Number of bathrooms is required",
-                disabled: isStudio,
-              })}
+              disabled={isStudio}
+              {...register("bathrooms", { required: !isStudio })}
               className="w-full p-2 border border-gray-300 rounded-md"
             />
             {errors.bathrooms && (
@@ -252,6 +296,7 @@ const RoomPostForm = () => {
           </div>
         </div>
 
+        {/* Available From */}
         <div>
           <label
             htmlFor="availableFrom"
@@ -262,9 +307,7 @@ const RoomPostForm = () => {
           <input
             id="availableFrom"
             type="date"
-            {...register("availableFrom", {
-              required: "Availability date is required",
-            })}
+            {...register("availableFrom", { required: true })}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
           {errors.availableFrom && (
@@ -274,26 +317,21 @@ const RoomPostForm = () => {
           )}
         </div>
 
-        {/* Studio Selection */}
+        {/* Studio */}
         <div className="mt-4">
           <label className="block text-sm font-semibold mb-2">Studio?</label>
           <select
-            {...register("isStudio", {
-              required: "Studio selection is required",
-            })}
+            {...register("isStudio")}
             className="w-full p-2 border border-gray-300 rounded-md"
             onChange={handleStudioChange}
           >
             <option value="false">Not a Studio</option>
             <option value="true">Studio</option>
           </select>
-          {errors.isStudio && (
-            <p className="text-red-500 text-xs">{errors.isStudio.message}</p>
-          )}
         </div>
 
-        {/* Utilities and Furnishing */}
-        <div className="mt-4 flex items-center space-x-2">
+        {/* Utilities & Furnishing */}
+        <div className="mt-4 flex items-center space-x-4">
           <input
             id="utilitiesIncluded"
             type="checkbox"
@@ -307,9 +345,7 @@ const RoomPostForm = () => {
             <input
               id="furnished"
               type="checkbox"
-              {...register("furnishing", {
-                defaultValue: false,
-              })}
+              {...register("furnishing")}
               className="h-4 w-4"
             />
             <label htmlFor="furnished" className="ml-2 text-sm">
@@ -318,6 +354,7 @@ const RoomPostForm = () => {
           </div>
         </div>
 
+        {/* Images */}
         <div>
           <label htmlFor="images" className="block text-sm font-semibold mb-2">
             Upload Images (Max 5)
@@ -333,42 +370,60 @@ const RoomPostForm = () => {
             }}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
+
+          {/* Existing Images */}
+          {existingImages.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              {existingImages.map((src, index) => (
+                <img
+                  key={index}
+                  src={src}
+                  alt={`Existing ${index}`}
+                  className="w-full h-40 object-cover rounded"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* New Previews */}
           {selectedFiles.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedFiles.length} image(s) selected
-            </p>
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              {selectedFiles.map((file, index) => (
+                <img
+                  key={index}
+                  src={URL.createObjectURL(file)}
+                  alt={`Preview ${index}`}
+                  className="w-full h-40 object-cover rounded"
+                />
+              ))}
+            </div>
           )}
         </div>
 
-        <p className="text-xs text-gray-500 mt-2">
-          <strong>Disclaimer:</strong> We only promote properties with no agent
-          fees.
-        </p>
         <button
           type="submit"
-          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer"
+          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer disabled:bg-gray-400"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Creating Listing..." : "Create Listing"}
+          {isSubmitting ? "Updating Listing..." : "Update Listing"}
         </button>
       </form>
 
-      {/* Render the notification modals */}
+      {/* Modals */}
       <Modal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        title="Room Listing Created!"
-        message="Your room has been successfully posted."
+        title="Room Listing Updated!"
+        message="Your room has been successfully updated."
       />
-
       <Modal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         title="Error"
-        message="Failed to create room listing."
+        message="Failed to update room listing."
       />
     </div>
   );
 };
 
-export default RoomPostForm;
+export default RoomEditForm;

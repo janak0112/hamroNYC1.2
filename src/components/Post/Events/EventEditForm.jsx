@@ -28,7 +28,6 @@ const EventEditForm = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [eventDoc, setEventDoc] = useState(null);
 
-  console.log("existingImages", existingImages)
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -64,8 +63,6 @@ const EventEditForm = () => {
           conf.appWriteCollectionIdEvents,
           id
         );
-
-        console.log("doc", doc)
         setEventDoc(doc);
 
         reset({
@@ -81,7 +78,6 @@ const EventEditForm = () => {
         if (doc.imageIds?.length > 0) {
           const urls = doc.imageIds.map((fileId) => {
             const preview = getFilePreview(fileId, 300, 300);
-            console.log("Generated preview:", preview);
             return preview;
           });
           setExistingImages(urls);
@@ -139,7 +135,7 @@ const EventEditForm = () => {
       setTimeout(() => {
         setShowSuccessModal(false);
         navigate(`/event/${id}`);
-      }, 2000);
+      }, 3000);
     } catch (error) {
       console.error("❌ Error updating event:", error);
       setErrorMessage("Failed to update event.");

@@ -47,7 +47,6 @@ const EventPostForm = () => {
   }, [navigate]);
 
   const onSubmit = async (data) => {
-    console.log(postedBy);
     if (!postedBy) {
       setErrorMessage("Please log in to create an Events listing.");
       return;
@@ -81,7 +80,7 @@ const EventPostForm = () => {
         eventData,
         conf.appWriteCollectionIdEvents
       );
-      console.log("Events listing created:", response);
+     
 
       reset();
       setSelectedFiles([]);

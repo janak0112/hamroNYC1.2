@@ -26,6 +26,9 @@ import {
 } from "./components/Display";
 import MyPosts from "./components/Display/MyPosts/MyPosts";
 import EventEditForm from "./components/Post/Events/EventEditForm";
+import JobEditForm from "./components/Post/Jobs/JobEditForm";
+import MarketEditForm from "./components/Post/Markets/MarketEditForm";
+import RoomEditForm from "./components/Post/Rooms/RoomEditForm";
 
 function App() {
   return (
@@ -46,6 +49,7 @@ function App() {
               {/* JOBS */}
 
               <Route path="add-job" element={<JobPostForm />} />
+              <Route path="jobs-edit/:id" element={<JobEditForm />} />
               <Route path="jobs/:id" element={<JobDetailPage />} />
 
               {/* EVENTS */}
@@ -55,10 +59,12 @@ function App() {
 
               {/* ROOMS */}
               <Route path="add-room" element={<RoomPostForm />} />
+              <Route path="rooms-edit/:id" element={<RoomEditForm />} />
               <Route path="rooms/:id" element={<RoomDetailPage />} />
 
               {/* MARKET */}
               <Route path="add-market" element={<MarketPostForm />} />
+              <Route path="market-edit/:id" element={<MarketEditForm />} />
               <Route path="market/:id" element={<MarketDetailPage />} />
 
               {/* Tiles */}

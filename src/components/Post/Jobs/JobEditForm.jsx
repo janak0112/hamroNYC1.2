@@ -1,45 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
+import { Storage } from "appwrite";
+import { getFilePreview } from "../../../appwrite/storage";
 
-const JobPostForm = () => {
+const JobEditForm = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
     reset,
-  } = useForm({
-    defaultValues: {
-      title: "",
-      description: "",
-      salary: "",
-      salaryType: "hourly",
-      location: "",
-      contactNumber: "",
-      contactEmail: "",
-      jobType: "full-time",
-      company: "",
-      checkOnly: false,
-      jobLink: "",
-    },
-  });
+  } = useForm();
 
-  const [userId, setUser] = useState({});
+  const [userId, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [jobsItem, setJobItem] = useState(null)
   const navigate = useNavigate();
 
   // Watch phone and email fields
   const contactNumber = watch("contactNumber");
   const contactEmail = watch("contactEmail");
+
+  const { id } = useParams()
 
   useEffect(() => {
     const checkUser = async () => {
@@ -57,6 +49,54 @@ const JobPostForm = () => {
     };
     checkUser();
   }, [navigate]);
+
+
+  // Fetch Jobs and format data
+  const fetchJobs = async () => {
+    try {
+      const job = await listingService.getDocument(
+        conf.appWriteCollectionIdJobs,
+        id
+      );
+
+      setJobItem(job)
+
+      if (job) {
+        reset({
+          title: job.title,
+          description: job.description,
+          salary: job.salary,
+          salaryType: job.salaryType,
+          location: job.location,
+          contactNumber: job.contactNumber,
+          contactEmail: job.contactEmail,
+          company: job.company,
+          jobType: job.jobType,
+          jobLink: job.jobLink,
+          checkOnly: job.checkOnly,
+        });
+      }
+
+      if (job.imageIds?.length > 0) {
+        const urls = job.imageIds.map((fileId) => {
+          const preview = getFilePreview(fileId, 300, 300);
+          
+          return preview;
+        });
+        setExistingImages(urls);
+      }
+    } catch (error) {
+      console.error("Error fetching job:", error);
+      setErrorMessage("Failed to load job data.");
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchJobs();
+    }
+  }, [id]);
+
 
   const onSubmit = async (data) => {
     if (!userId) {
@@ -78,7 +118,9 @@ const JobPostForm = () => {
         uploadedImageIds = await uploadImages(selectedFiles);
       }
 
+
       const jobData = {
+        type:"job",
         title: data.title,
         description: data.description,
         salary: data.salary,
@@ -90,16 +132,17 @@ const JobPostForm = () => {
         jobType: data.jobType,
         jobLink: data.jobLink || null,
         checkOnly: data.checkOnly,
-        imageIds: uploadedImageIds,
-        postedBy: JSON.stringify(userId),
+        imageIds: uploadedImageIds.length > 0 ? uploadedImageIds : jobsItem?.imageIds,
+        postedBy: JSON.stringify(userId).slice(0, 999),
         publish: true,
       };
 
-      const response = await listingService.createDocument(
+      const response = await listingService.updateDocument(
+        conf.appWriteCollectionIdJobs,
+        id,
         jobData,
-        conf.appWriteCollectionIdJobs
       );
-     
+    
 
       reset();
       setSelectedFiles([]);
@@ -107,7 +150,7 @@ const JobPostForm = () => {
 
       setTimeout(() => {
         setShowSuccessModal(false);
-        navigate("/jobs");
+        navigate(`/jobs/${id}`);
       }, 3000);
     } catch (error) {
       console.error("Error creating job listing:", error);
@@ -120,7 +163,7 @@ const JobPostForm = () => {
   return (
     <div className="container mx-auto px-6 py-20">
       <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
-        Create Job Listing
+        Edit Job Listing
       </h2>
 
       <form
@@ -363,11 +406,22 @@ const JobPostForm = () => {
             }}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
-          {selectedFiles.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedFiles.length} image(s) selected
-            </p>
-          )}
+      {existingImages.length > 0 && (
+  <div className="mt-4">
+    <p className="text-sm font-semibold mb-2">Existing Images</p>
+    <div className="flex flex-wrap gap-2">
+      {existingImages.map((url, idx) => (
+        <img
+          key={idx}
+          src={url}
+          alt="Job preview"
+          className="w-24 h-24 rounded-md object-cover border"
+        />
+      ))}
+    </div>
+  </div>
+)}
+
         </div>
 
         {/* Remote Only Option */}
@@ -388,16 +442,18 @@ const JobPostForm = () => {
           className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer disabled:bg-gray-400"
           disabled={isSubmitting || !userId}
         >
-          {isSubmitting ? "Creating Listing..." : "Create Listing"}
+          {isSubmitting ? "Updating Listing..." : "Update Listing"}
         </button>
+
       </form>
 
       <Modal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        title="Job Listing Created!"
-        message="Your job has been successfully posted. Redirecting to job listings..."
+        title="Job Listing Updated!"
+        message="Your job has been successfully updated. Redirecting to job listings..."
       />
+
 
       <Modal
         isOpen={!!errorMessage}
@@ -409,4 +465,4 @@ const JobPostForm = () => {
   );
 };
 
-export default JobPostForm;
+export default JobEditForm;

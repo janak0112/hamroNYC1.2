@@ -16,23 +16,8 @@ import { DataContext } from "../../../context/DataContext";
 
 
 function EventDetailContent({ event, imageUrl }) {
-  console.log(event);
   // Ensure imageUrl is always an array
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
-
-
-  // const { authUser } = useContext(DataContext);
-
-
-  // Check if logged-in user is the owner
-  // const isOwner =
-  //   authUser &&
-  //   event.postedBy &&
-  //   JSON.parse(event.postedBy).id === authUser;
-
-  // console.log(isOwner)
-
-
 
   return (
     <div className="container mx-auto px-6 py-20">

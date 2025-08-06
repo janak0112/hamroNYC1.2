@@ -25,25 +25,48 @@ const PostCard = ({ post }) => {
     }
   }, [post.imageIds]);
 
+ 
+
 
   // Check if logged-in user is the owner
   const isOwner = authUser && post.postedBy && JSON.parse(post.postedBy).id === authUser;
 
 
   // Delete handler
-  const handleDeleteEvent = async () => {
+  // Delete handler (works for jobs, events, etc.)
+  const handleDeletePost = async () => {
     setLoadingDelete(true);
     try {
-      await handleDeleteDocument(conf.appWriteCollectionIdEvents, post.$id);
+      let collectionId;
+      switch (post.type) {
+        case "jobs":
+          collectionId = conf.appWriteCollectionIdJobs;
+          break;
+        case "events":
+          collectionId = conf.appWriteCollectionIdEvents;
+          break;
+        case "rooms":
+          collectionId = conf.appWriteCollectionIdRooms;
+          break;
+        case "market":
+          collectionId = conf.appWriteCollectionIdMarket;
+          break;
+        default:
+          throw new Error("Unknown post type");
+      }
+
+      await handleDeleteDocument(collectionId, post.$id);
+
       setShowDeleteModal(false);
-      navigate("/events");
+      navigate(`/${post.type}s`); // redirect to listing page
     } catch (error) {
-      console.error("❌ Error deleting event:", error);
-      alert("Failed to delete event. Please try again.");
+      console.error(`❌ Error deleting ${post.type}:`, error);
+      alert(`Failed to delete ${post.type}. Please try again.`);
     } finally {
       setLoadingDelete(false);
     }
   };
+
 
 
   const handleViewClick = (e) => {
@@ -52,8 +75,6 @@ const PostCard = ({ post }) => {
   };
 
   const closeModal = () => setShowModal(false);
-
-  console.log("posttt", post)
 
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition-all p-6">
@@ -92,6 +113,7 @@ const PostCard = ({ post }) => {
             <Trash size={20} />
             Delete
           </button>
+
         </div>
       )}
       <h3 className="text-lg font-semibold">{post.title || "Untitled Post"}</h3>
@@ -123,12 +145,13 @@ const PostCard = ({ post }) => {
               Cancel
             </button>
             <button
-              onClick={handleDeleteEvent}
+              onClick={handleDeletePost}
               disabled={loadingDelete}
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
             >
               {loadingDelete ? "Deleting..." : "Delete"}
             </button>
+
           </div>
         </div>
       </ModalView>

@@ -12,7 +12,6 @@ function JobDetailContent({ job, imageUrl }) {
           )
           .join(" ")
       : "";
-  console.log("imageUrl:" + imageUrl);
   return (
     <div className="container mx-auto px-6 py-20">
       {/* Hero Image */}

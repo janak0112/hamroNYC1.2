@@ -34,7 +34,6 @@ const MyPosts = () => {
                 market: filterByUser(market, loggedInUserId),
                 events: filterByUser(events, loggedInUserId),
             });
-            console.log("Slug changed:", slug);
         }
     }, [slug, jobs, rooms, market, events, loggedInUserId, loading]); 
     // ✅ re-run when slug changes

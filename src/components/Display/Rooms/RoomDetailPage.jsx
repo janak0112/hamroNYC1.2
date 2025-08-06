@@ -51,8 +51,6 @@ function RoomDetailPage() {
       </p>
     );
 
-  console.log(room);
-
   return <RoomDetailContent room={room} imageUrl={imageUrl} />;
 }
 
