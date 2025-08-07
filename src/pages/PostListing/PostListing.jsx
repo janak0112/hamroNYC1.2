@@ -1,6 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { House, BriefcaseBusiness, ShoppingCart, CalendarDays,Plane } from 'lucide-react';
+import {
+  House,
+  BriefcaseBusiness,
+  ShoppingCart,
+  CalendarDays,
+  Plane,
+} from "lucide-react";
 
 const AddPostPage = () => {
   const navigate = useNavigate();
@@ -21,7 +27,7 @@ const AddPostPage = () => {
         navigate("/add-event"); // Navigate to event post form
         break;
       case "travel companions":
-        navigate("/add-travel-companions"); // Navigate to event post form
+        navigate("/travel"); // Navigate to event post form
         break;
       default:
         break;
@@ -41,7 +47,11 @@ const AddPostPage = () => {
           onClick={() => handlePostTypeSelection("room")}
         >
           <div className="flex gap-4 align-middle">
-            <House width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <House
+              width={60}
+              height={60}
+              className="text-[rgba(212,17,56,1)]"
+            />
             <div className="flex flex-col align-middle justify-center">
               <h3 className="text-lg font-semibold">Room</h3>
               <p className="text-sm text-gray-500">Post a room listing</p>
@@ -55,11 +65,16 @@ const AddPostPage = () => {
           onClick={() => handlePostTypeSelection("job")}
         >
           <div className="flex gap-4 align-middle">
-            <BriefcaseBusiness width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <BriefcaseBusiness
+              width={60}
+              height={60}
+              className="text-[rgba(212,17,56,1)]"
+            />
             <div className="flex flex-col align-middle justify-center">
               <h3 className="text-lg font-semibold">Job</h3>
               <p className="text-sm text-gray-500">Post a job listing</p>
-            </div></div>
+            </div>
+          </div>
         </div>
 
         {/* Market Option */}
@@ -68,7 +83,11 @@ const AddPostPage = () => {
           onClick={() => handlePostTypeSelection("market")}
         >
           <div className="flex gap-4 align-middle">
-            <ShoppingCart width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <ShoppingCart
+              width={60}
+              height={60}
+              className="text-[rgba(212,17,56,1)]"
+            />
             <div className="flex flex-col align-middle justify-center">
               <h3 className="text-lg font-semibold">Market</h3>
               <p className="text-sm text-gray-500">Post an item for sale</p>
@@ -82,7 +101,11 @@ const AddPostPage = () => {
           onClick={() => handlePostTypeSelection("event")}
         >
           <div className="flex gap-4 align-middle">
-            <CalendarDays width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <CalendarDays
+              width={60}
+              height={60}
+              className="text-[rgba(212,17,56,1)]"
+            />
             <div className="flex flex-col align-middle justify-center">
               <h3 className="text-lg font-semibold">Event</h3>
               <p className="text-sm text-gray-500">Post an event</p>
@@ -93,10 +116,14 @@ const AddPostPage = () => {
         {/* Travel Option */}
         <div
           className="flex items-center justify-center p-6 border border border-[rgba(212,17,56,1)] rounded-md cursor-pointer hover:bg-[rgba(212,17,56,0.1)] transition"
-          onClick={() => handlePostTypeSelection("event")}
+          onClick={() => navigate("/travel")}
         >
           <div className="flex gap-4 align-middle">
-            <Plane width={60} height={60} className="text-[rgba(212,17,56,1)]" />
+            <Plane
+              width={60}
+              height={60}
+              className="text-[rgba(212,17,56,1)]"
+            />
             <div className="flex flex-col align-middle justify-center">
               <h3 className="text-lg font-semibold">Travel Companions</h3>
               <p className="text-sm text-gray-500">Post Travel Companions</p>

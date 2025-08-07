@@ -74,7 +74,7 @@ const RoomPostForm = () => {
         publish: true,
       };
 
-      const response = await listingService.createDocument(
+      const response = await listingService.createListings(
         roomData,
         conf.appWriteCollectionIdRooms
       );

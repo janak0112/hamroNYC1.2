@@ -71,7 +71,7 @@ const MarketPostForm = () => {
         postedBy: JSON.stringify(user),
         publish: true,
       };
-      await listingService.createDocument(
+      await listingService.createMarketListing(
         marketData,
         conf.appWriteCollectionIdMarket
       );
