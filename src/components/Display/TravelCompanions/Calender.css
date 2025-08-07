@@ -1,0 +1,229 @@
+/* 🌙 Base calendar */
+.react-calendar {
+  border: none;
+  font-family: "Inter", sans-serif;
+  background-color: white;
+}
+
+/* Navigation */
+.react-calendar__navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.react-calendar__navigation__label {
+  flex-grow: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  pointer-events: none;
+}
+
+.react-calendar__navigation button {
+  background-color: #f3f4f6;
+  border-radius: 9999px;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.25rem;
+  color: #374151;
+  transition: background 0.2s ease;
+  border: none;
+}
+
+.react-calendar__navigation button:hover {
+  background-color: #e5e7eb;
+}
+
+/* Double view: side-by-side layout */
+.react-calendar--doubleView .react-calendar__viewContainer {
+  display: flex;
+  gap: 2rem;
+  padding: 0;
+}
+
+/* Month container */
+.react-calendar__month-view {
+  background: #f9fafb;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+/* Weekdays row */
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}
+
+/* Day tiles */
+.react-calendar__tile {
+  position: relative;
+  border-radius: 9999px;
+  height: 2.75rem;
+  width: 2.75rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+/* Today */
+.react-calendar__tile--now {
+  background-color: transparent;
+  color: #2563eb !important;
+  font-weight: 700;
+}
+
+/* Selected date */
+.react-calendar__tile--active {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover */
+.react-calendar__tile:enabled:hover {
+  background-color: #dbeafe;
+}
+
+/* Range selection (optional) */
+.react-calendar__tile--range {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* Count badge inside tile */
+.react-calendar__tile .badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #2463eb; /* your new blue */
+  color: white;
+  font-size: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+/* Weekends = normal color */
+.react-calendar__month-view__days__day--weekend {
+  color: #1f2937 !important;
+}
+
+/* Disabled (past) tiles */
+.react-calendar__tile:disabled {
+  background-color: transparent !important;
+  color: #9ca3af !important;
+  border-radius: 0 !important;
+  cursor: not-allowed;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Remove background from navigation buttons and center the label */
+.react-calendar__navigation {
+  background: none !important;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Make buttons transparent */
+.react-calendar__navigation button {
+  background: none !important;
+  box-shadow: none !important;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #1f2937; /* Tailwind gray-800 */
+}
+
+/* Remove the circular button look */
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background: transparent !important;
+  color: #cd4a3d;
+}
+
+/* Optional: center calendar titles if using double view */
+.react-calendar--doubleView .react-calendar__viewContainer {
+  display: flex;
+  gap: 2rem;
+}
+
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280; /* Tailwind g
+  ray-500 */
+}
+/* Replace weekday names with single letters */
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #6b7280; /* Tailwind gray-500 */
+  display: inline-block;
+  width: 100%;
+}
+
+/* Force only the first letter to show */
+.react-calendar__month-view__weekdays__weekday abbr::after {
+  content: attr(title);
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  content: attr(title);
+}
+
+.react-calendar__month-view__weekdays__weekday abbr[title="Sunday"]::after {
+  content: "S";
+}
+.react-calendar__month-view__weekdays__weekday abbr[title="Monday"]::after {
+  content: "M";
+}
+.react-calendar__month-view__weekdays__weekday abbr[title="Tuesday"]::after {
+  content: "T";
+}
+.react-calendar__month-view__weekdays__weekday abbr[title="Wednesday"]::after {
+  content: "W";
+}
+.react-calendar__month-view__weekdays__weekday abbr[title="Thursday"]::after {
+  content: "T";
+}
+.react-calendar__month-view__weekdays__weekday abbr[title="Friday"]::after {
+  content: "F";
+}
+.react-calendar__month-view__weekdays__weekday abbr[title="Saturday"]::after {
+  content: "S";
+}
+
+/* Hide the default abbr content */
+.react-calendar__month-view__weekdays__weekday abbr {
+  font-size: 0;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr::after {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.react-calendar__navigation__label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937; /* Tailwind gray-800 */
+  letter-spacing: 0.5px;
+}

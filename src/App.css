@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body {
-  font-family: "Lato", sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 header {
@@ -30,15 +30,15 @@ textarea {
 }
 
 .custom-primary {
-  color: #D41138;
+  color: #d41138;
 }
 
 .custom-primary-bg {
-  background-color: #D41138;
+  background-color: #d41138;
 }
 
 .custom-primary-border {
-  border-color: #D41138;
+  border-color: #d41138;
 }
 
 .custom-primary-bg-hover:hover {
@@ -46,7 +46,7 @@ textarea {
 }
 
 .custom-gradient {
-  background-image: linear-gradient(135deg, rgba(226, 155, 54, 1), #D41138);
+  background-image: linear-gradient(135deg, rgba(226, 155, 54, 1), #d41138);
 }
 
 .card-grid {
@@ -69,11 +69,7 @@ textarea {
   color: #dc2626;
 }
 
-
-
-
 /* MODAL */
-
 
 .checkmark-circle {
   width: 150px;
@@ -130,7 +126,7 @@ textarea {
   border-right: 15px solid #fff;
   border-top: 15px solid #fff;
   border-radius: 2.5px !important;
-  content: '';
+  content: "";
   left: 35px;
   top: 80px;
   position: absolute;
@@ -218,7 +214,6 @@ textarea {
   background-color: rgba(0, 0, 0, 0.9);
 }
 
-
 .gallery {
   display: flex;
   flex-wrap: wrap;
@@ -235,7 +230,6 @@ textarea {
   transform: scale(1.05);
 }
 
-
 .heading-primary {
   padding-bottom: 20px;
   margin-bottom: 40px;
@@ -243,17 +237,16 @@ textarea {
 
   &::after {
     position: absolute;
-    content: '';
+    content: "";
     width: 50px;
     height: 4px;
-    background-color: #D41138;
+    background-color: #d41138;
     bottom: 0;
     left: 50%;
     transform: translateY(-50%);
     border-radius: 4px;
   }
 }
-
 
 .custom-primary {
   position: relative;
@@ -265,7 +258,7 @@ textarea {
     height: 2px;
     bottom: -2px;
     left: 50%;
-    background-color: #D41138;
+    background-color: #d41138;
     transition: all 0.3s ease-in-out;
     transform: translateX(-50%);
   }

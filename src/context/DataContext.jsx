@@ -11,6 +11,8 @@ export const DataProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [market, setMarket] = useState([]);
+  const [travelCompanion, setTravelCompanion] = useState([]);
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -28,6 +30,7 @@ export const DataProvider = ({ children }) => {
     { type: "rooms", id: conf.appWriteCollectionIdRooms },
     { type: "market", id: conf.appWriteCollectionIdMarket },
     { type: "events", id: conf.appWriteCollectionIdEvents },
+    { type: "travelCompanion", id: conf.appWriteCollectionIdTravelC },
   ];
 
   // Fetch logged-in user via your auth helper
@@ -61,6 +64,9 @@ export const DataProvider = ({ children }) => {
       setRooms(result.filter((doc) => doc.type === "rooms"));
       setMarket(result.filter((doc) => doc.type === "market"));
       setEvents(result.filter((doc) => doc.type === "events"));
+      setTravelCompanion(
+        result.filter((doc) => doc.type === "travelCompanion")
+      );
       setError(null);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -88,11 +94,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-
-
   useEffect(() => {
     fetchAllData();
-    fetchUser()
+    fetchUser();
   }, [fetchAllData, fetchUser]);
 
   return (
@@ -107,7 +111,8 @@ export const DataProvider = ({ children }) => {
         error,
         authUser,
         fetchAllData,
-        handleDeleteDocument
+        travelCompanion,
+        handleDeleteDocument,
       }}
     >
       {children}

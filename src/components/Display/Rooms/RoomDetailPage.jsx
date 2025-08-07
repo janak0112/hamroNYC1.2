@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Client, Databases } from "appwrite";
-import conf from "../../../conf/conf";
 import { getImageUrls } from "../../../utils/uploadFile"; // Adjust the path if needed
 import RoomDetailContent from "./RoomDetailContent";
+import conf from "../../../conf/conf";
 
 const client = new Client()
   .setEndpoint(conf.appWriteUrl)

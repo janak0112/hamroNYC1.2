@@ -1,102 +1,178 @@
-import { Client, Databases, ID } from "appwrite";
+import { Client, Databases, ID, Query } from "appwrite"; // Add Query for filtering
 import conf from "../conf/conf";
 
-// Initialize Appwrite client
+// Initialize Appwrite client and Databases
 const client = new Client();
 const databases = new Databases(client);
 
 client.setEndpoint(conf.appWriteUrl).setProject(conf.appWriteProjectId);
 
-/**
- * Generic create function for any collection
- */
-const createDocument = async (data, collectionId) => {
+// Create a listing with userId
+export const createListing = async ({
+  title,
+  description,
+  category,
+  price,
+  location,
+  contact,
+  imageIds = null,
+  userId,
+}) => {
   try {
     const response = await databases.createDocument(
       conf.appWriteDatabaseId,
-      collectionId,
+      conf.appWriteCollectionId,
+      ID.unique(),
+      {
+        title,
+        description,
+        category,
+        price,
+        location,
+        contact,
+        imageIds,
+        userId, // Add userId to the document
+      }
+    );
+    console.log("✅ Listing created:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ createListing error:", error);
+    throw error;
+  }
+};
+
+export const createListings = async (data) => {
+  try {
+    const response = await databases.createDocument(
+      conf.appWriteDatabaseId,
+      conf.appWriteCollectionIdRooms,
       ID.unique(),
       data
     );
-    console.log(`✅ Document created in ${collectionId}:`, response);
+    console.log("✅ Listing created:", response);
     return response;
   } catch (error) {
-    console.error(`❌ createDocument error in ${collectionId}:`, error);
+    console.error("❌ createListing error:", error);
     throw error;
   }
 };
 
-/**
- * Generic get all documents from a collection
- */
-const getDocuments = async (collectionId, queries = []) => {
+export const createJobListing = async (data) => {
+  try {
+    const response = await databases.createDocument(
+      conf.appWriteDatabaseId,
+      conf.appWriteCollectionIdJobs,
+      ID.unique(),
+      data
+    );
+    console.log("✅ Listing created:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ createListing error:", error);
+    throw error;
+  }
+};
+
+export const createEventsListing = async (data) => {
+  try {
+    const response = await databases.createDocument(
+      conf.appWriteDatabaseId,
+      conf.appWriteCollectionIdEvents,
+      ID.unique(),
+      data
+    );
+    console.log("✅ Listing created:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ createListing error:", error);
+    throw error;
+  }
+};
+
+export const createMarketListing = async (data) => {
+  try {
+    const response = await databases.createDocument(
+      conf.appWriteDatabaseId,
+      conf.appWriteCollectionIdMarket,
+      ID.unique(),
+      data
+    );
+    console.log("✅ Listing created:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ createListing error:", error);
+    throw error;
+  }
+};
+
+// Get all listings (optionally filter by userId)
+export const getListings = async () => {
   try {
     const response = await databases.listDocuments(
       conf.appWriteDatabaseId,
-      collectionId,
-      queries
+      conf.appWriteCollectionIdRooms
     );
     return response.documents;
   } catch (error) {
-    console.error(`❌ getDocuments error in ${collectionId}:`, error);
+    console.error("❌ getListings error:", error);
     throw error;
   }
 };
 
-/**
- * Get a single document
- */
-const getDocument = async (collectionId, documentId) => {
+// Get single listing by ID
+export const getListing = async (listingId) => {
   try {
-    return await databases.getDocument(
+    const response = await databases.getDocument(
       conf.appWriteDatabaseId,
-      collectionId,
-      documentId
+      conf.appWriteCollectionIdRooms,
+      listingId
     );
+    return response.documents;
   } catch (error) {
-    console.error(`❌ getDocument error in ${collectionId}:`, error);
+    console.error("❌ getListing error:", error);
     throw error;
   }
 };
 
-/**
- * Update a document
- */
-const updateDocument = async (collectionId, documentId, updatedData) => {
+// Update a listing
+export const updateListing = async (listingId, updatedData) => {
   try {
     return await databases.updateDocument(
       conf.appWriteDatabaseId,
-      collectionId,
-      documentId,
-      updatedData
+      conf.appWriteCollectionId,
+      listingId,
+      updatedData // userId can be included in updatedData if needed
     );
   } catch (error) {
-    console.error(`❌ updateDocument error in ${collectionId}:`, error);
+    console.error("❌ updateListing error:", error);
     throw error;
   }
 };
 
-/**
- * Delete a document
- */
-const deleteDocument = async (collectionId, documentId) => {
+// Delete a listing
+export const deleteListing = async (listingId) => {
   try {
     return await databases.deleteDocument(
       conf.appWriteDatabaseId,
-      collectionId,
-      documentId
+      conf.appWriteCollectionId,
+      listingId
     );
   } catch (error) {
-    console.error(`❌ deleteDocument error in ${collectionId}:`, error);
+    console.error("❌ deleteListing error:", error);
     throw error;
   }
 };
 
 const listingService = {
-  createDocument,
-  getDocuments,
-  getDocument,
-  updateDocument,
-  deleteDocument,
+  createListing,
+  getListings,
+  getListing,
+  updateListing,
+  deleteListing,
+  createListings,
+  createJobListing,
+  createMarketListing,
+  createEventsListing,
 };
 export default listingService;

@@ -8,6 +8,7 @@ const conf = {
   appWriteCollectionIdJobs: import.meta.env.VITE_APPWRITE_JOBS_ID,
   appWriteCollectionIdMarket: import.meta.env.VITE_APPWRITE_MARKET_ID,
   appWriteCollectionIdEvents: import.meta.env.VITE_APPWRITE_EVENTS_ID,
+  appWriteCollectionIdTravelC: import.meta.env.VITE_APPWRITE_TRAVELC_ID,
 };
 
 export default conf;
