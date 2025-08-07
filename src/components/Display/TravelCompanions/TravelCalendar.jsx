@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { DataContext } from "../../../context/DataContext";
+import { useNavigate } from "react-router";
 
 // Utility to normalize a date to YYYY-MM-DD (local time)
 const formatDate = (date) => {
@@ -13,6 +14,7 @@ const TravelCalendar = () => {
   const [datesWithCounts, setDatesWithCounts] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [companions, setCompanions] = useState([]);
+  const navigate = useNavigate();
 
   // 🔁 Build a date-to-companions map
   useEffect(() => {
@@ -70,7 +72,7 @@ const TravelCalendar = () => {
         </h3>
         <div className="flex justify-center gap-4 flex-wrap">
           <button
-            onClick={() => navigate("/post-travel")} // replace with actual route
+            onClick={() => navigate("/add-your-flight")}
             className="bg-[#2563eb] text-white px-5 py-2 rounded-full hover:bg-[#1e4ed8] transition"
           >
             ✈️ Add Your Flight

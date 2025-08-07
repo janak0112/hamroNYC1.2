@@ -18,8 +18,6 @@ const EventEditForm = () => {
     reset,
   } = useForm();
 
-
-
   const [postedBy, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -82,7 +80,6 @@ const EventEditForm = () => {
           });
           setExistingImages(urls);
         }
-
       } catch (error) {
         console.error("❌ Failed to fetch event:", error);
         setErrorMessage("Could not load event data.");
@@ -144,9 +141,6 @@ const EventEditForm = () => {
     }
   };
 
-
-
-
   return (
     <div className="container mx-auto px-6 py-20">
       <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
@@ -185,7 +179,9 @@ const EventEditForm = () => {
           <textarea
             id="description"
             placeholder="Describe the event"
-            {...register("description", { required: "Description is required" })}
+            {...register("description", {
+              required: "Description is required",
+            })}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
           {errors.description && (
@@ -250,7 +246,9 @@ const EventEditForm = () => {
               className="w-full p-2 border border-gray-300 rounded-md"
             />
             {errors.onlineLink && (
-              <p className="text-red-500 text-xs">{errors.onlineLink.message}</p>
+              <p className="text-red-500 text-xs">
+                {errors.onlineLink.message}
+              </p>
             )}
           </div>
         )}
@@ -328,7 +326,9 @@ const EventEditForm = () => {
             <option value="paid">Paid Ticket</option>
           </select>
           {errors.ticketOption && (
-            <p className="text-red-500 text-xs">{errors.ticketOption.message}</p>
+            <p className="text-red-500 text-xs">
+              {errors.ticketOption.message}
+            </p>
           )}
         </div>
 
@@ -353,7 +353,9 @@ const EventEditForm = () => {
               className="w-full p-2 border border-gray-300 rounded-md"
             />
             {errors.ticketCost && (
-              <p className="text-red-500 text-xs">{errors.ticketCost.message}</p>
+              <p className="text-red-500 text-xs">
+                {errors.ticketCost.message}
+              </p>
             )}
           </div>
         )}
@@ -403,7 +405,6 @@ const EventEditForm = () => {
               ))}
             </div>
           )}
-
         </div>
 
         <button

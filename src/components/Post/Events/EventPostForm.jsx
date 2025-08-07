@@ -80,7 +80,6 @@ const EventPostForm = () => {
         eventData,
         conf.appWriteCollectionIdEvents
       );
-     
 
       reset();
       setSelectedFiles([]);

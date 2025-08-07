@@ -1,0 +1,165 @@
+import React, { useState } from "react";
+
+const AddFlightForm = ({ onSubmit }) => {
+  const [form, setForm] = useState({
+    fromLocation: "",
+    toLocation: "",
+    flightNo: "",
+    contact: "+1",
+    date: "",
+    returnDate: "",
+    description: "",
+    transitAirport: "",
+    Airlines: "",
+    postType: "offering", // or "looking" if you want toggle logic
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Clean data: remove empty optional fields
+    const dataToSubmit = { ...form };
+    if (!dataToSubmit.returnDate) delete dataToSubmit.returnDate;
+    if (!dataToSubmit.transitAirport) delete dataToSubmit.transitAirport;
+
+    onSubmit(dataToSubmit); // Replace with your backend logic
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white shadow-xl rounded-2xl px-8 py-10 max-w-2xl mx-auto space-y-6 mt-10 mb-16"
+    >
+      <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-8 tracking-tight">
+        <span className="text-[#2563eb] mr-2">✈️</span>
+        Add Your <span className="text-[#2563eb]">Flight</span> Details
+      </h2>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="block mb-1 font-medium text-sm">From</label>
+          <input
+            name="fromLocation"
+            type="text"
+            required
+            value={form.fromLocation}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="JFK"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">To</label>
+          <input
+            name="toLocation"
+            type="text"
+            required
+            value={form.toLocation}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Kathmandu"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">Flight No</label>
+          <input
+            name="flightNo"
+            type="text"
+            required
+            value={form.flightNo}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+            placeholder="QR 645"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">Date</label>
+          <input
+            name="date"
+            type="date"
+            required
+            value={form.date}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">
+            Return Date (optional)
+          </label>
+          <input
+            name="returnDate"
+            type="date"
+            value={form.returnDate}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">
+            Transit Airport (optional)
+          </label>
+          <input
+            name="transitAirport"
+            type="text"
+            value={form.transitAirport}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+            placeholder="Doha"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">Airlines</label>
+          <input
+            name="Airlines"
+            type="text"
+            required
+            value={form.Airlines}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+            placeholder="Qatar Airways"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium text-sm">Contact</label>
+          <input
+            name="contact"
+            type="text"
+            required
+            value={form.contact}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+            placeholder="+1 555 555 5555"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block mb-1 font-medium text-sm">Description</label>
+        <textarea
+          name="description"
+          rows={3}
+          value={form.description}
+          onChange={handleChange}
+          className="w-full border px-3 py-2 rounded-lg"
+          placeholder="Extra baggage? Travel buddy? Any note here."
+        />
+      </div>
+
+      <div className="text-center pt-4">
+        <button
+          type="submit"
+          className="border border-[#2463EB] text-[#2463EB] font-semibold py-2 px-6 rounded-full hover:bg-[#2463EB] hover:text-white transition"
+        >
+          ✈️ Submit Flight
+        </button>
+      </div>
+    </form>
+  );
+};
+
+export default AddFlightForm;
