@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 import {
   Phone,
   MapPin,
@@ -8,100 +8,84 @@ import {
   CheckCircle,
   Globe,
   Ticket,
-  Edit,
-  Trash
 } from "lucide-react";
-import Fancybox from "../../FancyBox/fancyBox";
-import { DataContext } from "../../../context/DataContext";
-
 
 function EventDetailContent({ event, imageUrl }) {
-  // Ensure imageUrl is always an array
   const imageUrls = Array.isArray(imageUrl) ? imageUrl : [];
 
+  const formatName = (name) =>
+    name
+      ? name
+          .split(" ")
+          .map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          )
+          .join(" ")
+      : "";
+
   return (
-    <div className="container mx-auto px-6 py-20">
+    <div className="max-w-6xl mx-auto px-4 py-16">
       {/* Hero Image */}
       {imageUrls.length > 0 && (
-        <div className="w-full mb-6">
+        <div className="w-full mb-8">
           <img
             src={imageUrls[0].trim()}
             alt={event.title}
-            className="w-full max-h-[450px] object-cover rounded-xl shadow-lg"
+            className="w-full max-h-[300px] object-contain mx-auto bg-gray-100 rounded-xl shadow-md"
           />
         </div>
       )}
 
-      <h1 className="text-4xl font-extrabold mb-4 text-gray-800">
+      {/* Title */}
+      <h1 className="text-4xl font-extrabold mb-2 text-gray-900">
         {event.title}
       </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Section */}
-        <div className="col-span-2 space-y-6">
-          {/* Event Mode Badge */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-6">
+        {/* Left Column */}
+        <div className="col-span-2 space-y-8">
+          {/* Mode */}
           <span
-            className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${event.eventMode === "online"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-green-100 text-green-700"
-              }`}
+            className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${
+              event.eventMode === "online"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-green-100 text-green-700"
+            }`}
           >
             {event.eventMode === "online" ? "Online Event" : "In-Person Event"}
           </span>
 
-          {/* Edit/Delete Buttons - Only if owner */}
-          {/* {isOwner && (
-            <div className="flex gap-4 mt-8"> */}
-              {/* Edit as a Link */}
-              {/* <Link
-                to={`/event-edit/${event.$id}`}
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-              >
-                <Edit size={18} /> Edit
-              </Link> */}
-
-              {/* Delete stays a button */}
-              {/* <button
-                onClick={handleDeleteEvent}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-              >
-                <Trash size={18} /> Delete
-              </button>
-            </div>
-          )} */}
-
-
           {/* Date & Time */}
-          <div className="flex items-center space-x-6 text-gray-600 mt-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-6 text-gray-600">
+            <div className="flex items-center gap-2">
               <Calendar size={20} />
               <span>
                 {event.eventDate
                   ? new Date(event.eventDate).toLocaleDateString([], {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
                   : "Date not provided"}
               </span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Clock size={20} />
               <span>
                 {event.eventTime
                   ? new Date(
-                    `1970-01-01T${event.eventTime}`
-                  ).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
+                      `1970-01-01T${event.eventTime}`
+                    ).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
                   : "Time not provided"}
               </span>
             </div>
           </div>
 
-          {/* Location / Online Link */}
-          {event.eventMode === "inPerson" && (
+          {/* Location / Link */}
+          {event.eventMode === "inPerson" && event.location && (
             <div className="flex items-center text-gray-600">
               <MapPin size={20} className="mr-2" />
               <span className="font-medium">{event.location}</span>
@@ -122,15 +106,15 @@ function EventDetailContent({ event, imageUrl }) {
           )}
 
           {/* Ticket Info */}
-          <div className="mt-4">
-            <div className="flex items-center space-x-2">
-              <Ticket size={20} className="text-gray-700" />
-              <span className="text-gray-800 font-medium">
+          <div>
+            <div className="flex items-center gap-2 text-gray-800">
+              <Ticket size={20} />
+              <span className="font-medium">
                 {event.ticketOption === "free"
                   ? "Free Entry"
                   : event.ticketOption === "paid"
-                    ? `Paid Event - $${event.ticketCost}`
-                    : "Ticket info not provided"}
+                  ? `Paid Event - $${event.ticketCost}`
+                  : "Ticket info not provided"}
               </span>
             </div>
             {event.ticketLink && (
@@ -146,62 +130,57 @@ function EventDetailContent({ event, imageUrl }) {
           </div>
 
           {/* Description */}
-          <div className="mt-6">
-            <h3 className="text-3xl font-semibold text-gray-800">
+          <div>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
               Event Description
             </h3>
-            <p className="mt-2 text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed text-[1.05rem]">
               {event.description || "No description provided."}
             </p>
           </div>
         </div>
 
-        {/* Right Section */}
-        <div className="bg-white shadow-xl p-6 rounded-xl border sticky top-6">
-          <h3 className="text-xl font-bold mb-4 text-gray-800">Contact Info</h3>
+        {/* Right Column */}
+        <div className="bg-white shadow-xl border rounded-xl p-6 sticky top-6 space-y-6 h-fit">
+          <h3 className="text-xl font-bold text-gray-800">Contact Info</h3>
+
           {event.contact ? (
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center gap-2 text-gray-700">
               <Phone size={18} />
-              <span className="text-gray-700">{event.contact}</span>
+              <span>{event.contact}</span>
             </div>
           ) : (
-            <p className="text-gray-500">No contact info provided</p>
+            <p className="text-gray-500">No contact info provided.</p>
           )}
 
           {event.email && (
-            <div className="mb-4">
+            <div>
               <a
                 href={`mailto:${event.email}`}
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline font-medium"
               >
                 {event.email}
               </a>
             </div>
           )}
 
-          <p className="text-sm text-gray-500">
-            <span className="font-medium text-gray-700">
-              {event.postedBy
-                ? JSON.parse(event.postedBy)
-                  .name.split(" ")
-                  .map(
-                    (word) =>
-                      word.charAt(0).toUpperCase() +
-                      word.slice(1).toLowerCase()
-                  )
-                  .join(" ")
-                : ""}
-            </span>
-          </p>
+          {event.postedBy && (
+            <p className="text-sm text-gray-500">
+              Posted by:{" "}
+              <span className="font-medium text-gray-800">
+                {formatName(JSON.parse(event.postedBy).name)}
+              </span>
+            </p>
+          )}
 
           {/* CTA Button */}
           <a
             href={event.ticketLink || "#"}
             target={event.ticketLink ? "_blank" : "_self"}
             rel="noopener noreferrer"
-            className="w-full py-3 mt-6 text-center text-white font-semibold rounded-lg bg-gradient-to-r from-green-500 to-teal-600 hover:opacity-90 block transition"
+            className="w-full py-3 text-center text-white font-semibold rounded-lg bg-gradient-to-r from-green-500 to-teal-600 hover:opacity-90 block transition"
           >
-            {event.ticketLink ? "Register Now" : "Apply Now"}
+            {event.ticketLink ? "Register Now" : "No Ticket Link"}
           </a>
         </div>
       </div>

@@ -4,7 +4,6 @@ import { DataContext } from "../../context/DataContext";
 import HeroBanner from "./Components/HeroBanner";
 import CategoryTiles from "./Components/CategoryTiles";
 import PostSection from "./Components/PostSection";
-import Footer from "./Components/Footer";
 
 function HomePage() {
   const { jobs, rooms, market, loading, error, events } =

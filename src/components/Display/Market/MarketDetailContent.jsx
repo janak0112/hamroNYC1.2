@@ -1,4 +1,3 @@
-// components/MarketDetailContent.jsx
 import React from "react";
 import { Phone, MapPin, CalendarClock, CheckCircle, User } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -16,31 +15,29 @@ const MarketDetailContent = ({ item, imageUrl }) => {
       : "";
 
   return (
-    <div className="container mx-auto px-6 py-20">
-      {/* Hero Image */}
-      {imageUrl ? (
-        <div className="w-full mb-8">
-          <img
-            src={imageUrl}
-            alt={item.title}
-            className="w-full max-h-[400px] object-cover rounded-xl shadow-lg"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        </div>
-      ) : null}
+    <div className="max-w-6xl mx-auto px-4 py-16">
+      {/* Image */}
+      <div className="w-full mb-10">
+        <img
+          src={imageUrl || MarketImg}
+          alt={item.title}
+          onError={(e) => {
+            e.currentTarget.src = MarketImg;
+          }}
+          className="w-full max-h-[300px] object-contain mx-auto rounded-lg shadow-md bg-gray-100"
+        />
+      </div>
 
       {/* Title */}
       <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
         {item.title}
       </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-6">
         {/* Left Column */}
-        <div className="col-span-2 space-y-8">
+        <div className="col-span-2 space-y-10">
           {/* Location & Posted Date */}
-          <div className="flex items-center gap-6 text-gray-600">
+          <div className="flex flex-wrap items-center gap-6 text-gray-600">
             <div className="flex items-center gap-2">
               <MapPin size={18} />
               <span className="font-medium">
@@ -62,18 +59,18 @@ const MarketDetailContent = ({ item, imageUrl }) => {
 
           {/* Description */}
           <div>
-            <h3 className="text-3xl font-semibold text-gray-800 mb-2">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
               Item Description
             </h3>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed text-[1.05rem]">
               {item.description || "No description provided."}
             </p>
           </div>
 
           {/* Condition */}
           {item.condition && (
-            <div className="flex items-center space-x-2">
-              <CheckCircle size={20} className="text-green-500" />
+            <div className="flex items-center gap-2 text-green-700 font-medium">
+              <CheckCircle size={20} />
               <span className="text-lg">{item.condition}</span>
             </div>
           )}
