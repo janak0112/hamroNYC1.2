@@ -95,11 +95,10 @@ const JobPostForm = () => {
         publish: true,
       };
 
-      const response = await listingService.createDocument(
+      const response = await listingService.createJobListing(
         jobData,
         conf.appWriteCollectionIdJobs
       );
-     
 
       reset();
       setSelectedFiles([]);

@@ -76,7 +76,7 @@ const EventPostForm = () => {
         postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
-      const response = await listingService.createDocument(
+      const response = await listingService.createEventsListing(
         eventData,
         conf.appWriteCollectionIdEvents
       );
