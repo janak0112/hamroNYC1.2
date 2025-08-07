@@ -7,6 +7,8 @@ import Modal from "../../Modals/Modal";
 import { uploadImages } from "../../../utils/uploadFile"; // Utility function
 import conf from "../../../conf/conf";
 
+import ImageUploader from "../../ImageUploader/ImageUploader";
+
 const RoomPostForm = () => {
   const {
     register,
@@ -21,7 +23,9 @@ const RoomPostForm = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [imagePreview, setImagePreview] = useState([]);
   const navigate = useNavigate();
+
 
   // Check if the user is logged in
   useEffect(() => {
@@ -40,6 +44,8 @@ const RoomPostForm = () => {
     };
     checkUser();
   }, [navigate]);
+
+
 
   const onSubmit = async (data) => {
     if (!user) {
@@ -74,7 +80,7 @@ const RoomPostForm = () => {
         publish: true,
       };
 
-      const response = await listingService.createListings(
+      const response = await listingService.createDocument(
         roomData,
         conf.appWriteCollectionIdRooms
       );
@@ -318,27 +324,13 @@ const RoomPostForm = () => {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files).slice(0, 5);
-              setSelectedFiles(files);
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {selectedFiles.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedFiles.length} image(s) selected
-            </p>
-          )}
-        </div>
+        {/* Image Upload */}
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+        />
 
         <p className="text-xs text-gray-500 mt-2">
           <strong>Disclaimer:</strong> We only promote properties with no agent

@@ -7,6 +7,8 @@ import { uploadImages } from "../../../utils/uploadFile"; // Utility function
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 
+import ImageUploader from "../../ImageUploader/ImageUploader";
+
 const EventPostForm = () => {
   const {
     register,
@@ -21,6 +23,7 @@ const EventPostForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [imagePreview, setImagePreview] = useState([]);
   const navigate = useNavigate();
 
   const ticketOption = watch("ticketOption");
@@ -45,6 +48,8 @@ const EventPostForm = () => {
     };
     checkUser();
   }, [navigate]);
+
+
 
   const onSubmit = async (data) => {
     if (!postedBy) {
@@ -76,7 +81,7 @@ const EventPostForm = () => {
         postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
-      const response = await listingService.createEventsListing(
+      const response = await listingService.createDocument(
         eventData,
         conf.appWriteCollectionIdEvents
       );
@@ -353,27 +358,12 @@ const EventPostForm = () => {
         </div>
 
         {/* Image Upload */}
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files).slice(0, 5);
-              setSelectedFiles(files);
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {selectedFiles.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedFiles.length} image(s) selected
-            </p>
-          )}
-        </div>
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+        />
 
         {/* Submit Button */}
         <button

@@ -9,6 +9,8 @@ import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
 
+import ImageUploader from "../../ImageUploader/ImageUploader";
+
 const EventEditForm = () => {
   const {
     register,
@@ -23,8 +25,10 @@ const EventEditForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
   const [eventDoc, setEventDoc] = useState(null);
+  
+  const [existingImages, setExistingImages] = useState([]);
+  const [imagePreview, setImagePreview] = useState([]);
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -73,11 +77,15 @@ const EventEditForm = () => {
             : "",
         });
 
+
         if (doc.imageIds?.length > 0) {
-          const urls = doc.imageIds.map((fileId) => {
-            const preview = getFilePreview(fileId, 300, 300);
-            return preview;
-          });
+          const urls = doc.imageIds.map((fileId) => ({
+            id: fileId,
+            preview: getFilePreview(fileId),
+          }));
+          setExistingImages(urls);
+          
+            console.log("Resolved previews:", urls);
           setExistingImages(urls);
         }
       } catch (error) {
@@ -115,8 +123,10 @@ const EventEditForm = () => {
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,
-        imageIds:
-          uploadedImageIds.length > 0 ? uploadedImageIds : eventDoc?.imageIds,
+        imageIds: [
+          ...(existingImages.map((img) => img.id)), // only the images that are left
+          ...uploadedImageIds,
+        ],
         postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
@@ -126,7 +136,7 @@ const EventEditForm = () => {
         eventData
       );
 
-      console.log("✅ Event updated:", response);
+
       setShowSuccessModal(true);
 
       setTimeout(() => {
@@ -378,34 +388,14 @@ const EventEditForm = () => {
         </div>
 
         {/* Image Upload */}
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files).slice(0, 5);
-              setSelectedFiles(files);
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {existingImages.length > 0 && (
-            <div className="flex gap-3 mt-3 flex-wrap">
-              {existingImages.map((url, idx) => (
-                <img
-                  key={idx}
-                  src={url}
-                  alt={`Event Image ${idx + 1}`}
-                  className="w-28 h-28 object-cover rounded-md border"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          existingImages={existingImages}
+          setExistingImages={setExistingImages}
+        />
 
         <button
           type="submit"

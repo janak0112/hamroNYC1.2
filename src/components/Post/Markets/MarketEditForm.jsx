@@ -7,6 +7,8 @@ import { uploadImages } from "../../../utils/uploadFile";
 import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
 
+import ImageUploader from "../../ImageUploader/ImageUploader";
+
 const MarketEditForm = () => {
   const {
     register,
@@ -22,6 +24,7 @@ const MarketEditForm = () => {
   const [marketItem, setMarketItem] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
+  const [imagePreview, setImagePreview] = useState([]);
 
   // Check user login
   useEffect(() => {
@@ -63,10 +66,14 @@ const MarketEditForm = () => {
           });
 
           if (item.imageIds?.length > 0) {
-            const previews = item.imageIds.map((fileId) =>
-              getFilePreview(fileId, 300, 300)
-            );
-            setExistingImages(previews);
+            const urls = item.imageIds.map((fileId) => ({
+              id: fileId,
+              preview: getFilePreview(fileId),
+            }));
+            setExistingImages(urls);
+            
+              console.log("Resolved previews:", urls);
+            setExistingImages(urls);
           }
         }
       } catch (error) {
@@ -78,11 +85,6 @@ const MarketEditForm = () => {
     if (id) fetchMarketItem();
   }, [id, reset]);
 
-  // Handle image selection
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 5);
-    setSelectedFiles(files);
-  };
 
   // Submit handler
   const onSubmit = async (data) => {
@@ -107,10 +109,10 @@ const MarketEditForm = () => {
         location: data.location,
         contact: data.contact,
         condition: data.condition,
-        imageIds:
-          uploadedImageIds.length > 0
-            ? uploadedImageIds
-            : marketItem?.imageIds || [],
+        imageIds: [
+          ...(existingImages.map((img) => img.id)), // only the images that are left
+          ...uploadedImageIds,
+        ],
         postedBy: JSON.stringify(user),
         publish: true,
       };
@@ -252,47 +254,14 @@ const MarketEditForm = () => {
         </div>
 
         {/* Image Upload */}
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-
-          {/* Show existing images */}
-          {existingImages.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {existingImages.map((src, index) => (
-                <img
-                  key={index}
-                  src={src}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-40 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Show new previews */}
-          {selectedFiles.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {selectedFiles.map((file, index) => (
-                <img
-                  key={index}
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-40 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          existingImages={existingImages}
+          setExistingImages={setExistingImages}
+        />
 
         <button
           type="submit"

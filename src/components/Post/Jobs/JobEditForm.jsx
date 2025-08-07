@@ -6,8 +6,9 @@ import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
-import { Storage } from "appwrite";
 import { getFilePreview } from "../../../appwrite/storage";
+
+import ImageUploader from "../../ImageUploader/ImageUploader";
 
 const JobEditForm = () => {
   const {
@@ -25,6 +26,8 @@ const JobEditForm = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [jobsItem, setJobItem] = useState(null)
+  const [imagePreview, setImagePreview] = useState([]);
+
   const navigate = useNavigate();
 
   // Watch phone and email fields
@@ -58,7 +61,6 @@ const JobEditForm = () => {
         conf.appWriteCollectionIdJobs,
         id
       );
-
       setJobItem(job)
 
       if (job) {
@@ -77,19 +79,24 @@ const JobEditForm = () => {
         });
       }
 
+
       if (job.imageIds?.length > 0) {
-        const urls = job.imageIds.map((fileId) => {
-          const preview = getFilePreview(fileId, 300, 300);
-          
-          return preview;
-        });
+        const urls = job.imageIds.map((fileId) => ({
+          id: fileId,
+          preview: getFilePreview(fileId),
+        }));
         setExistingImages(urls);
-      }
+        
+          console.log("Resolved previews:", urls);
+        setExistingImages(urls);
+      }     
+
     } catch (error) {
       console.error("Error fetching job:", error);
       setErrorMessage("Failed to load job data.");
     }
   };
+
 
   useEffect(() => {
     if (id) {
@@ -120,7 +127,7 @@ const JobEditForm = () => {
 
 
       const jobData = {
-        type:"job",
+        type: "job",
         title: data.title,
         description: data.description,
         salary: data.salary,
@@ -132,7 +139,11 @@ const JobEditForm = () => {
         jobType: data.jobType,
         jobLink: data.jobLink || null,
         checkOnly: data.checkOnly,
-        imageIds: uploadedImageIds.length > 0 ? uploadedImageIds : jobsItem?.imageIds,
+        imageIds: [
+          ...(existingImages.map((img) => img.id)), // only the images that are left
+          ...uploadedImageIds,
+        ],
+        
         postedBy: JSON.stringify(userId).slice(0, 999),
         publish: true,
       };
@@ -142,7 +153,7 @@ const JobEditForm = () => {
         id,
         jobData,
       );
-    
+
 
       reset();
       setSelectedFiles([]);
@@ -391,38 +402,15 @@ const JobEditForm = () => {
         </div>
 
         {/* Image Upload */}
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files).slice(0, 5);
-              setSelectedFiles(files);
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-      {existingImages.length > 0 && (
-  <div className="mt-4">
-    <p className="text-sm font-semibold mb-2">Existing Images</p>
-    <div className="flex flex-wrap gap-2">
-      {existingImages.map((url, idx) => (
-        <img
-          key={idx}
-          src={url}
-          alt="Job preview"
-          className="w-24 h-24 rounded-md object-cover border"
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          existingImages={existingImages}
+          setExistingImages={setExistingImages}
         />
-      ))}
-    </div>
-  </div>
-)}
 
-        </div>
 
         {/* Remote Only Option */}
         <div className="mt-4 flex items-center space-x-2">

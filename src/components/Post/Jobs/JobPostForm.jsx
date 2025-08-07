@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import listingService from "../../../appwrite/config";
@@ -6,6 +6,8 @@ import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
+
+import ImageUploader from "../../ImageUploader/ImageUploader";
 
 const JobPostForm = () => {
   const {
@@ -35,6 +37,7 @@ const JobPostForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [imagePreview, setImagePreview] = useState([]);
   const navigate = useNavigate();
 
   // Watch phone and email fields
@@ -95,7 +98,7 @@ const JobPostForm = () => {
         publish: true,
       };
 
-      const response = await listingService.createJobListing(
+      const response = await listingService.createDocument(
         jobData,
         conf.appWriteCollectionIdJobs
       );
@@ -347,27 +350,12 @@ const JobPostForm = () => {
         </div>
 
         {/* Image Upload */}
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files).slice(0, 5);
-              setSelectedFiles(files);
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {selectedFiles.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedFiles.length} image(s) selected
-            </p>
-          )}
-        </div>
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+        />
 
         {/* Remote Only Option */}
         <div className="mt-4 flex items-center space-x-2">

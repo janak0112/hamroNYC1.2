@@ -8,6 +8,8 @@ import { uploadImages } from "../../../utils/uploadFile";
 import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
 
+import ImageUploader from "../../ImageUploader/ImageUploader";
+
 const RoomEditForm = () => {
   const {
     register,
@@ -26,6 +28,7 @@ const RoomEditForm = () => {
   const [roomItem, setRoomItem] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
+  const [imagePreview, setImagePreview] = useState([]);
 
   // Check if the user is logged in
   useEffect(() => {
@@ -74,11 +77,15 @@ const RoomEditForm = () => {
           setIsStudio(room.isStudio);
 
           if (room.imageIds?.length > 0) {
-            const previews = room.imageIds.map((fileId) =>
-              getFilePreview(fileId, 300, 300)
-            );
-            setExistingImages(previews);
-          }
+            const urls = room.imageIds.map((fileId) => ({
+              id: fileId,
+              preview: getFilePreview(fileId),
+            }));
+            setExistingImages(urls);
+            
+              console.log("Resolved previews:", urls);
+            setExistingImages(urls);
+          }  
         }
       } catch (error) {
         console.error("Error fetching room:", error);
@@ -116,10 +123,10 @@ const RoomEditForm = () => {
         availableFrom: data.availableFrom,
         isStudio: Boolean(data.isStudio),
         utilitiesIncluded: data.utilitiesIncluded,
-        imageIds:
-          uploadedImageIds.length > 0
-            ? uploadedImageIds
-            : roomItem?.imageIds || [],
+        imageIds: [
+          ...(existingImages.map((img) => img.id)), // only the images that are left
+          ...uploadedImageIds,
+        ],
         postedBy: JSON.stringify(user),
         publish: true,
       };
@@ -355,50 +362,15 @@ const RoomEditForm = () => {
         </div>
 
         {/* Images */}
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files).slice(0, 5);
-              setSelectedFiles(files);
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          existingImages={existingImages}
+          setExistingImages={setExistingImages}
+        />
 
-          {/* Existing Images */}
-          {existingImages.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {existingImages.map((src, index) => (
-                <img
-                  key={index}
-                  src={src}
-                  alt={`Existing ${index}`}
-                  className="w-full h-40 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-
-          {/* New Previews */}
-          {selectedFiles.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {selectedFiles.map((file, index) => (
-                <img
-                  key={index}
-                  src={URL.createObjectURL(file)}
-                  alt={`Preview ${index}`}
-                  className="w-full h-40 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-        </div>
 
         <button
           type="submit"

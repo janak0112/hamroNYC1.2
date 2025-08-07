@@ -6,6 +6,8 @@ import authService from "../../../appwrite/auth"; // Adjust path as needed
 import { uploadImages } from "../../../utils/uploadFile"; // Adjust path as needed
 import conf from "../../../conf/conf";
 
+import ImageUploader from "../../ImageUploader/ImageUploader";
+
 const MarketPostForm = () => {
   const {
     register,
@@ -37,12 +39,7 @@ const MarketPostForm = () => {
     checkUser();
   }, [navigate]);
 
-  // Handle image selection and preview
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 5);
-    setSelectedFiles(files);
-    setImagePreview(files.map((file) => URL.createObjectURL(file)));
-  };
+
 
   // Handle form submission
   const onSubmit = async (data) => {
@@ -71,7 +68,7 @@ const MarketPostForm = () => {
         postedBy: JSON.stringify(user),
         publish: true,
       };
-      await listingService.createMarketListing(
+      await listingService.createDocument(
         marketData,
         conf.appWriteCollectionIdMarket
       );
@@ -204,31 +201,14 @@ const MarketPostForm = () => {
           )}
         </div>
 
-        <div>
-          <label htmlFor="images" className="block text-sm font-semibold mb-2">
-            Upload Images (Max 5)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {imagePreview.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {imagePreview.map((src, index) => (
-                <img
-                  key={index}
-                  src={src}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-40 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Image Upload */}
+
+        <ImageUploader
+          selectedFiles={selectedFiles}
+          setSelectedFiles={setSelectedFiles}
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+        />
 
         <button
           type="submit"

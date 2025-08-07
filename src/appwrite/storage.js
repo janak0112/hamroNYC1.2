@@ -24,14 +24,26 @@ export const uploadFile = async (file) => {
 };
 
 // Get file preview URL
+// export const getFilePreview = (fileId, width = 600, height = 600) => {
+//   try {
+//     return storage.getFilePreview(conf.appWriteBucketId, fileId, width, height).href;
+//   } catch (error) {
+//     console.error("getFilePreview error:", error);
+//     return null;
+//   }
+// };
+
 export const getFilePreview = (fileId, width = 600, height = 600) => {
   try {
-    return storage.getFilePreview(conf.appWriteBucketId, fileId, width, height);
+    const result = storage.getFilePreview(conf.appWriteBucketId, fileId, width, height);
+    // result is a URL object or URL string (depending on SDK)
+    return result?.href || result?.toString();  // fallback
   } catch (error) {
     console.error("getFilePreview error:", error);
     return null;
   }
 };
+
 
 // Delete a file
 export const deleteFile = async (fileId) => {
