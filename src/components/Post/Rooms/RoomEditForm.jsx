@@ -82,10 +82,10 @@ const RoomEditForm = () => {
               preview: getFilePreview(fileId),
             }));
             setExistingImages(urls);
-            
-              console.log("Resolved previews:", urls);
+
+            console.log("Resolved previews:", urls);
             setExistingImages(urls);
-          }  
+          }
         }
       } catch (error) {
         console.error("Error fetching room:", error);
@@ -124,7 +124,7 @@ const RoomEditForm = () => {
         isStudio: Boolean(data.isStudio),
         utilitiesIncluded: data.utilitiesIncluded,
         imageIds: [
-          ...(existingImages.map((img) => img.id)), // only the images that are left
+          ...existingImages.map((img) => img.id), // only the images that are left
           ...uploadedImageIds,
         ],
         postedBy: JSON.stringify(user),
@@ -134,9 +134,8 @@ const RoomEditForm = () => {
       const response = await listingService.updateDocument(
         conf.appWriteCollectionIdRooms,
         id,
-        roomData,
+        roomData
       );
-     
 
       setShowSuccessModal(true);
 
@@ -314,6 +313,7 @@ const RoomEditForm = () => {
           <input
             id="availableFrom"
             type="date"
+            min={today}
             {...register("availableFrom", { required: true })}
             className="w-full p-2 border border-gray-300 rounded-md"
           />
@@ -370,7 +370,6 @@ const RoomEditForm = () => {
           existingImages={existingImages}
           setExistingImages={setExistingImages}
         />
-
 
         <button
           type="submit"

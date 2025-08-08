@@ -2,32 +2,38 @@ import React, { useState, useContext, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { DataContext } from "../../../context/DataContext";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom"; // useRouter → useNavigate
 
-// Utility to normalize a date to YYYY-MM-DD (local time)
-const formatDate = (date) => {
-  return date.toISOString().split("T")[0]; // '2025-08-27'
-};
+// Utility to normalize a date to YYYY-MM-DD
+const formatDate = (date) => date.toISOString().split("T")[0];
 
 const TravelCalendar = () => {
   const { travelCompanion } = useContext(DataContext);
   const [datesWithCounts, setDatesWithCounts] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [companions, setCompanions] = useState([]);
+  const [doubleView, setDoubleView] = useState(window.innerWidth >= 640);
   const navigate = useNavigate();
 
-  // 🔁 Build a date-to-companions map
+  // Responsive calendar view
+  useEffect(() => {
+    const handleResize = () => {
+      setDoubleView(window.innerWidth >= 640);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Build a date-to-companions map
   useEffect(() => {
     const counts = {};
     travelCompanion
       .filter((c) => !!c.date)
       .forEach((entry) => {
         const dateStr = formatDate(new Date(entry.date));
-        if (counts[dateStr]) {
-          counts[dateStr].push(entry);
-        } else {
-          counts[dateStr] = [entry];
-        }
+        counts[dateStr] = counts[dateStr]
+          ? [...counts[dateStr], entry]
+          : [entry];
       });
 
     setDatesWithCounts(counts);
@@ -40,11 +46,12 @@ const TravelCalendar = () => {
   };
 
   return (
-    <>
-      <div className="bg-white shadow-xl rounded-2xl px-6 py-8 max-w-fit mx-auto">
+    <div className="px-4 pb-20">
+      {/* Calendar */}
+      <div className="bg-white shadow-xl rounded-2xl px-4 sm:px-6 py-6 sm:py-8 w-full max-w-[90vw] sm:max-w-3xl mx-auto">
         <Calendar
           onClickDay={handleDateClick}
-          showDoubleView={true}
+          showDoubleView={doubleView}
           calendarType="gregory"
           minDate={new Date()}
           tileContent={({ date }) => {
@@ -66,6 +73,8 @@ const TravelCalendar = () => {
           className="react-calendar w-full"
         />
       </div>
+
+      {/* Action buttons */}
       <div className="mt-10 text-center">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">
           Want to post your travel?
@@ -78,7 +87,7 @@ const TravelCalendar = () => {
             ✈️ Add Your Flight
           </button>
           <button
-            onClick={() => navigate("/post-looking")} // replace with actual route
+            onClick={() => navigate("/post-looking")}
             className="border border-[#2563eb] text-[#2563eb] px-5 py-2 rounded-full hover:bg-[#ebf0ff] transition"
           >
             👀 Post You're Looking
@@ -86,14 +95,16 @@ const TravelCalendar = () => {
         </div>
       </div>
 
+      {/* Disclaimer */}
       <div className="mt-8 max-w-4xl mx-auto text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <p className="font-medium text-yellow-800">⚠️ Disclaimer:</p>
         <p className="mt-2">
           This platform is intended{" "}
           <strong>only for individuals seeking travel companions</strong>
-          —especially our
-          <strong> Ama, Buwa, and first-time travelers</strong> who may need
-          assistance navigating flights.
+          —especially our <strong>
+            Ama, Buwa, and first-time travelers
+          </strong>{" "}
+          who may need assistance navigating flights.
           <br />
           <strong>
             ⚠️ Please do not use this to send documents, luggage, or any
@@ -102,6 +113,7 @@ const TravelCalendar = () => {
         </p>
       </div>
 
+      {/* Companions list */}
       {selectedDate && (
         <div className="mt-10 max-w-5xl mx-auto">
           <h2 className="text-2xl font-extrabold text-center mb-6 text-gray-900 tracking-tight">
@@ -128,15 +140,36 @@ const TravelCalendar = () => {
                   <p className="text-sm text-gray-700">
                     {c.description || "No details provided."}
                   </p>
-                  <p className="text-sm font-semibold mt-3">
-                    Contact:{" "}
-                    <a
-                      href={`tel:${c.contact}`}
-                      className="text-[#2563eb] hover:underline"
-                    >
-                      {c.contact || "Not provided"}
-                    </a>
-                  </p>
+                  <div className="mt-4 space-y-1 text-sm">
+                    <div>
+                      <span className="font-semibold text-gray-700">
+                        📞 Contact:
+                      </span>{" "}
+                      <a
+                        href={`tel:${c.contact}`}
+                        className="text-[#2563EB] font-medium hover:underline"
+                      >
+                        {c.contact || "Not provided"}
+                      </a>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700">
+                        👤 Posted By:
+                      </span>{" "}
+                      <span className="font-medium ">
+                        {c.postedBy
+                          ? JSON.parse(c.postedBy)
+                              .name.split(" ")
+                              .map(
+                                (word) =>
+                                  word.charAt(0).toUpperCase() +
+                                  word.slice(1).toLowerCase()
+                              )
+                              .join(" ")
+                          : "Not provided"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -147,7 +180,7 @@ const TravelCalendar = () => {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

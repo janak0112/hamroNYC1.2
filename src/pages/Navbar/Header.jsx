@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import authService from "../../appwrite/auth";
-import logo from "../../assets/img/logo.png";
+import { toast } from "react-toastify";
 
 function Header({ ref }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -43,10 +43,12 @@ function Header({ ref }) {
     setIsLoading(true);
     try {
       await authService.logout();
+      toast.success("👋 You have been logged out successfully!");
       setIsLoggedIn(false); // ✅ this hides logged-in-only links
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("⚠️ Logout failed. Please try again.");
       setErrorMessage("Failed to logout.");
     } finally {
       setIsLoading(false);

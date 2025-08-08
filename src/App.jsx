@@ -13,6 +13,8 @@ import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import TravelCompanions from "./components/Display/TravelCompanions/TravelCompanions";
 import AddFlightForm from "./components/Post/Travels/AddFlightForm";
 import PostLookingForm from "./components/Post/Travels/PostLookingForm";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import {
   JobPostForm,
@@ -35,6 +37,7 @@ import RoomEditForm from "./components/Post/Rooms/RoomEditForm";
 function App() {
   return (
     <>
+      <ToastContainer position="top-center" autoClose={3000} />
       <DataProvider>
         <BrowserRouter>
           <Routes>
@@ -44,7 +47,6 @@ function App() {
               <Route path="login" element={<LogIn />} />
               <Route path="/profile" element={<MyProfile />} />
               <Route path="my-posts" element={<MyPosts />} />
-
               <Route path="travel" element={<TravelCompanions />} />
               <Route path="add-your-flight" element={<AddFlightForm />} />
               <Route path="post-looking" element={<PostLookingForm />} />

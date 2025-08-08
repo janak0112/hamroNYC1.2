@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile"; // Utility function
-import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 
 import ImageUploader from "../../ImageUploader/ImageUploader";
@@ -21,7 +21,6 @@ const EventPostForm = () => {
   const [postedBy, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
   const navigate = useNavigate();
@@ -48,8 +47,6 @@ const EventPostForm = () => {
     };
     checkUser();
   }, [navigate]);
-
-
 
   const onSubmit = async (data) => {
     if (!postedBy) {
@@ -88,15 +85,14 @@ const EventPostForm = () => {
 
       reset();
       setSelectedFiles([]);
-      setShowSuccessModal(true);
+      toast.success("Event created successfully!");
 
       setTimeout(() => {
-        setShowSuccessModal(false);
-        // navigate("/events");
-      }, 3000);
+        navigate("/events");
+      }, 1000);
     } catch (error) {
       console.error("Error creating event listing:", error);
-      alert("Failed to create event listing.");
+      toast.error("❌ Failed to submit flight. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -374,20 +370,6 @@ const EventPostForm = () => {
           {isSubmitting ? "Creating Listing..." : "Create Listing"}
         </button>
       </form>
-
-      <Modal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Event Listing Created!"
-        message="Your event has been successfully posted."
-      />
-
-      <Modal
-        isOpen={!!errorMessage}
-        onClose={() => setErrorMessage("")}
-        title="Error"
-        message={errorMessage}
-      />
     </div>
   );
 };

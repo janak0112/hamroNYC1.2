@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
 import authService from "../../appwrite/auth";
 import { FcGoogle } from "react-icons/fc";
+import { toast } from "react-toastify";
 
 function LogIn() {
   const {
@@ -30,6 +31,7 @@ function LogIn() {
         email: data.email,
         password: data.password,
       });
+      toast.success("Logged in successfully!");
 
       navigate(redirectTo);
     } catch (error) {
@@ -54,6 +56,7 @@ function LogIn() {
     } catch (error) {
       console.error("Google Login Error:", error);
       setErrorMessage(error.message || "Failed to sign in with Google.");
+      toast.error("⚠️ Login failed. Please try again.");
     }
   };
 
@@ -65,6 +68,7 @@ function LogIn() {
     } catch (error) {
       console.error("Facebook Login Error:", error);
       setErrorMessage(error.message || "Failed to sign in with Facebook.");
+      toast.error("⚠️ Login failed. Please try again.");
     }
   };
 

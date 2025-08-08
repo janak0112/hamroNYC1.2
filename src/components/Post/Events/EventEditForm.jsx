@@ -26,7 +26,7 @@ const EventEditForm = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [eventDoc, setEventDoc] = useState(null);
-  
+
   const [existingImages, setExistingImages] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
 
@@ -77,15 +77,14 @@ const EventEditForm = () => {
             : "",
         });
 
-
         if (doc.imageIds?.length > 0) {
           const urls = doc.imageIds.map((fileId) => ({
             id: fileId,
             preview: getFilePreview(fileId),
           }));
           setExistingImages(urls);
-          
-            console.log("Resolved previews:", urls);
+
+          console.log("Resolved previews:", urls);
           setExistingImages(urls);
         }
       } catch (error) {
@@ -124,7 +123,7 @@ const EventEditForm = () => {
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,
         imageIds: [
-          ...(existingImages.map((img) => img.id)), // only the images that are left
+          ...existingImages.map((img) => img.id), // only the images that are left
           ...uploadedImageIds,
         ],
         postedBy: JSON.stringify(postedBy).slice(0, 999),
@@ -135,7 +134,6 @@ const EventEditForm = () => {
         id,
         eventData
       );
-
 
       setShowSuccessModal(true);
 

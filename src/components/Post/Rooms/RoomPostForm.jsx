@@ -26,7 +26,6 @@ const RoomPostForm = () => {
   const [imagePreview, setImagePreview] = useState([]);
   const navigate = useNavigate();
 
-
   // Check if the user is logged in
   useEffect(() => {
     const checkUser = async () => {
@@ -44,8 +43,6 @@ const RoomPostForm = () => {
     };
     checkUser();
   }, [navigate]);
-
-
 
   const onSubmit = async (data) => {
     if (!user) {
@@ -268,6 +265,7 @@ const RoomPostForm = () => {
           <input
             id="availableFrom"
             type="date"
+            min={today}
             {...register("availableFrom", {
               required: "Availability date is required",
             })}

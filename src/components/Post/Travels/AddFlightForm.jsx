@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import conf from "../../../conf/conf";
@@ -54,13 +55,18 @@ const AddFlightForm = () => {
     const dataToSubmit = { ...form };
     if (!dataToSubmit.returnDate) delete dataToSubmit.returnDate;
     if (!dataToSubmit.transitAirport) delete dataToSubmit.transitAirport;
+    try {
+      // onSubmit(dataToSubmit); // Replace with your backend logic
+      listingService.createDocument(form, conf.appWriteCollectionIdTravelC);
+      toast.success("✅ Flight submitted successfully!");
 
-    // onSubmit(dataToSubmit); // Replace with your backend logic
-    listingService.createDocument(form, conf.appWriteCollectionIdTravelC);
-
-    setTimeout(() => {
-      navigate("/travel"); // ✅ Redirect after delay
-    }, 1000); // 2-second delay to show message
+      setTimeout(() => {
+        navigate("/travel"); // ✅ Redirect after delay
+      }, 1000); // 2-second delay to show message
+    } catch (error) {
+      console.error("Error adding flight:", error);
+      toast.error("❌ Failed to submit flight. Please try again.");
+    }
   };
 
   return (
@@ -119,6 +125,7 @@ const AddFlightForm = () => {
             value={form.date}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
+            min={new Date().toISOString().split("T")[0]} // sets today's date as minimum
           />
         </div>
         <div>
@@ -131,6 +138,7 @@ const AddFlightForm = () => {
             value={form.returnDate}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
+            min={new Date().toISOString().split("T")[0]} // sets today's date as minimum
           />
         </div>
         <div>

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import listingService from "../../../appwrite/config";
 import conf from "../../../conf/conf";
-import { useNavigate } from "react-router-dom";
 import authService from "../../../appwrite/auth";
 
 const PostLookingForm = ({ onSubmit }) => {
-  const [success, setSuccess] = useState(false); // ✅ Success state
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -69,13 +69,14 @@ const PostLookingForm = ({ onSubmit }) => {
         form,
         conf.appWriteCollectionIdTravelC
       );
+      toast.success("✅ Flight submitted successfully!");
 
       setTimeout(() => {
         navigate("/travel"); // ✅ Redirect after delay
       }, 2000); // 2-second delay to show message
     } catch (error) {
       console.error("Error adding flight:", error);
-      alert("Something went wrong. Please try again.");
+      toast.error("❌ Failed to submit flight. Please try again.");
     }
   };
   return (
@@ -130,6 +131,7 @@ const PostLookingForm = ({ onSubmit }) => {
             value={form.preferredStartDate}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
+            min={new Date().toISOString().split("T")[0]} // sets today's date as minimum
           />
         </div>
         <div>
@@ -143,6 +145,7 @@ const PostLookingForm = ({ onSubmit }) => {
             value={form.preferredEndDate}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
+            min={new Date().toISOString().split("T")[0]} // sets today's date as minimum
           />
         </div>
 
