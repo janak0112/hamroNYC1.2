@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import listingService from "../../../appwrite/config";
+import authService from "../../../appwrite/auth";
+import conf from "../../../conf/conf";
 
-const AddFlightForm = ({ onSubmit }) => {
+const AddFlightForm = () => {
   const [form, setForm] = useState({
     fromLocation: "",
     toLocation: "",
@@ -10,9 +14,34 @@ const AddFlightForm = ({ onSubmit }) => {
     returnDate: "",
     description: "",
     transitAirport: "",
-    Airlines: "",
+    airlines: "",
     postType: "offering", // or "looking" if you want toggle logic
+    postedBy: {},
   });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+
+        if (!user) {
+          navigate(`/login?redirect=/add-your-flight`);
+          return;
+        }
+
+        setForm((prev) => ({
+          ...prev,
+          postedBy: JSON.stringify({ id: user.$id, name: user.name }),
+        }));
+      } catch (err) {
+        console.error("Error getting user:", err);
+        navigate("/login"); // fallback redirect
+      }
+    };
+
+    getUser();
+  }, [navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -26,7 +55,12 @@ const AddFlightForm = ({ onSubmit }) => {
     if (!dataToSubmit.returnDate) delete dataToSubmit.returnDate;
     if (!dataToSubmit.transitAirport) delete dataToSubmit.transitAirport;
 
-    onSubmit(dataToSubmit); // Replace with your backend logic
+    // onSubmit(dataToSubmit); // Replace with your backend logic
+    listingService.createDocument(form, conf.appWriteCollectionIdTravelC);
+
+    setTimeout(() => {
+      navigate("/travel"); // ✅ Redirect after delay
+    }, 1000); // 2-second delay to show message
   };
 
   return (
@@ -115,10 +149,10 @@ const AddFlightForm = ({ onSubmit }) => {
         <div>
           <label className="block mb-1 font-medium text-sm">Airlines</label>
           <input
-            name="Airlines"
+            name="airlines"
             type="text"
             required
-            value={form.Airlines}
+            value={form.airlines}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
             placeholder="Qatar Airways"
@@ -134,6 +168,14 @@ const AddFlightForm = ({ onSubmit }) => {
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
             placeholder="+1 555 555 5555"
+            onBlur={() => {
+              const digits = form.contact.replace(/\D/g, "");
+              if (digits.length < 10) {
+                alert(
+                  "Please enter a valid phone number with at least 10 digits."
+                );
+              }
+            }}
           />
         </div>
       </div>

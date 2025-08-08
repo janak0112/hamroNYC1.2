@@ -1,6 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import listingService from "../../../appwrite/config";
+import conf from "../../../conf/conf";
+import { useNavigate } from "react-router-dom";
+import authService from "../../../appwrite/auth";
 
 const PostLookingForm = ({ onSubmit }) => {
+  const [success, setSuccess] = useState(false); // ✅ Success state
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     fromLocation: "",
     toLocation: "",
@@ -10,7 +17,30 @@ const PostLookingForm = ({ onSubmit }) => {
     contact: "+1",
     description: "",
     postType: "looking",
+    postedBy: {},
   });
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+
+        if (!user) {
+          navigate(`/login?redirect=/add-your-flight`);
+          return;
+        }
+
+        setForm((prev) => ({
+          ...prev,
+          postedBy: JSON.stringify({ id: user.$id, name: user.name }),
+        }));
+      } catch (err) {
+        console.error("Error getting user:", err);
+        navigate("/login"); // fallback redirect
+      }
+    };
+    getUser();
+  }, [navigate]);
 
   const months = [
     "January",
@@ -31,11 +61,23 @@ const PostLookingForm = ({ onSubmit }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(form);
-  };
 
+    try {
+      await listingService.createDocument(
+        form,
+        conf.appWriteCollectionIdTravelC
+      );
+
+      setTimeout(() => {
+        navigate("/travel"); // ✅ Redirect after delay
+      }, 2000); // 2-second delay to show message
+    } catch (error) {
+      console.error("Error adding flight:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
   return (
     <form
       onSubmit={handleSubmit}
@@ -45,7 +87,12 @@ const PostLookingForm = ({ onSubmit }) => {
         <span className="text-[#2563eb] mr-2">👀</span>
         Post You're <span className="text-[#2563eb]">Looking</span> For a Flight
       </h2>
-
+      {/* ✅ Show success message */}
+      {success && (
+        <p className="text-green-600 text-center mt-4 font-medium">
+          🎉 Flight added successfully! Redirecting...
+        </p>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="block mb-1 font-medium text-sm">From</label>
@@ -129,6 +176,14 @@ const PostLookingForm = ({ onSubmit }) => {
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-lg"
             placeholder="+1 555 555 5555"
+            onBlur={() => {
+              const digits = form.contact.replace(/\D/g, "");
+              if (digits.length < 10) {
+                alert(
+                  "Please enter a valid phone number with at least 10 digits."
+                );
+              }
+            }}
           />
         </div>
       </div>

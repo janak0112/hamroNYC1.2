@@ -11,8 +11,8 @@ import MyProfile from "./pages/Profile/MyProfile";
 import { DataProvider } from "./context/DataContext";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import TravelCompanions from "./components/Display/TravelCompanions/TravelCompanions";
-import AddFlightForm from "./components/Display/TravelCompanions/AddFlightForm";
-import PostLookingForm from "./pages/Home/Components/PostLookingForm";
+import AddFlightForm from "./components/Post/Travels/AddFlightForm";
+import PostLookingForm from "./components/Post/Travels/PostLookingForm";
 
 import {
   JobPostForm,

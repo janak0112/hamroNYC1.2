@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import authService from "../../appwrite/auth"; // Adjust path to your AuthService file
-import { FcGoogle } from "react-icons/fc"; // Google icon
+import { useNavigate, useLocation } from "react-router-dom";
+import authService from "../../appwrite/auth";
+import { FcGoogle } from "react-icons/fc";
 
 function LogIn() {
   const {
@@ -12,22 +12,26 @@ function LogIn() {
   } = useForm();
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get redirect path from query (fallback to home)
+  const redirectTo =
+    new URLSearchParams(location.search).get("redirect") || "/";
+
+  // Email/password login
   const onSubmit = async (data) => {
     setErrorMessage("");
     setIsLoading(true);
 
     try {
-      console.log("Submitting login:", {
-        email: data.email,
-        password: data.password,
-      });
       await authService.login({
         email: data.email,
         password: data.password,
       });
-      navigate("/"); // Redirect to dashboard or another route
+
+      navigate(redirectTo);
     } catch (error) {
       console.error("Login Error:", error);
       if (error.code === 401) {
@@ -41,23 +45,23 @@ function LogIn() {
       setIsLoading(false);
     }
   };
-  // Handle Google login
+
+  // Google login
   const handleGoogleLogin = async () => {
     try {
-      // Replace with your authService method for Google login
       await authService.loginWithGoogle();
-
-      navigate("/");
+      navigate(redirectTo);
     } catch (error) {
       console.error("Google Login Error:", error);
       setErrorMessage(error.message || "Failed to sign in with Google.");
     }
   };
 
+  // Facebook login
   const handleFacebookLogin = async () => {
     try {
-      await authService.loginWithFacebook(); // Replace with your service method
-      navigate("/");
+      await authService.loginWithFacebook();
+      navigate(redirectTo);
     } catch (error) {
       console.error("Facebook Login Error:", error);
       setErrorMessage(error.message || "Failed to sign in with Facebook.");
@@ -69,11 +73,11 @@ function LogIn() {
       onSubmit={handleSubmit(onSubmit)}
       className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg space-y-4 mt-20 mb-20"
     >
+      {/* Error Message */}
       {errorMessage && (
         <p
           role="alert"
-          className="text-sm text-center"
-          style={{ color: "rgba(212, 17, 56, 1)" }}
+          className="text-sm text-center text-red-600 font-medium"
         >
           {errorMessage}
         </p>
@@ -103,7 +107,7 @@ function LogIn() {
         Continue with Facebook
       </button>
 
-      {/* Divider with OR */}
+      {/* Divider */}
       <div className="flex items-center justify-center my-4">
         <div className="flex-grow border-t border-gray-300"></div>
         <span className="px-3 text-gray-500 text-sm font-medium">OR</span>
@@ -121,17 +125,11 @@ function LogIn() {
             message: "Invalid email format",
           },
         })}
-        className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-600"
+        className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D41138]"
         aria-invalid={errors.email ? "true" : "false"}
       />
       {errors.email && (
-        <p
-          role="alert"
-          className="text-sm"
-          style={{ color: "rgba(212, 17, 56, 1)" }}
-        >
-          {errors.email.message}
-        </p>
+        <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
       )}
 
       {/* Password Input */}
@@ -145,24 +143,17 @@ function LogIn() {
             message: "Password must be at least 6 characters",
           },
         })}
-        className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-600"
+        className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#D41138]"
         aria-invalid={errors.password ? "true" : "false"}
       />
       {errors.password && (
-        <p
-          role="alert"
-          className="text-sm"
-          style={{ color: "rgba(212, 17, 56, 1)" }}
-        >
-          {errors.password.message}
-        </p>
+        <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
       )}
 
-      {/* Sign In Button */}
+      {/* Submit Button */}
       <button
         type="submit"
-        className="w-full py-2 rounded text-white font-semibold"
-        style={{ backgroundColor: "rgba(212, 17, 56, 1)" }}
+        className="w-full py-2 rounded text-white font-semibold bg-[#D41138] hover:bg-[#c10d31] transition"
         disabled={isLoading}
       >
         {isLoading ? "Signing In..." : "Sign In"}
