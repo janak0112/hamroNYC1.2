@@ -7,6 +7,7 @@ import Modal from "../../Modals/Modal";
 import { uploadImages } from "../../../utils/uploadFile";
 import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
+import { checkUserLoggedIn } from "../../../utils/authUtils";
 
 import ImageUploader from "../../ImageUploader/ImageUploader";
 
@@ -32,20 +33,8 @@ const RoomEditForm = () => {
 
   // Check if the user is logged in
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        if (currentUser) {
-          setUser({ id: currentUser.$id, name: currentUser.name });
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("User check failed:", error);
-        navigate("/login");
-      }
-    };
-    checkUser();
+    const { user } = checkUserLoggedIn();
+    user && setUser({ id: user.$id, name: user.name });
   }, [navigate]);
 
   // Fetch existing room data
@@ -313,7 +302,7 @@ const RoomEditForm = () => {
           <input
             id="availableFrom"
             type="date"
-            min={today}
+            min={new Date().toISOString().split("T")[0]} // sets today's date as minimum
             {...register("availableFrom", { required: true })}
             className="w-full p-2 border border-gray-300 rounded-md"
           />

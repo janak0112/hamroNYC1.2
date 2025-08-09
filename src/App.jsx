@@ -13,6 +13,7 @@ import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import TravelCompanions from "./components/Display/TravelCompanions/TravelCompanions";
 import AddFlightForm from "./components/Post/Travels/AddFlightForm";
 import PostLookingForm from "./components/Post/Travels/PostLookingForm";
+import PhoneVerificationModal from "./components/phone/PhoneVerificationModal";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -51,6 +52,7 @@ function App() {
               <Route path="add-your-flight" element={<AddFlightForm />} />
               <Route path="post-looking" element={<PostLookingForm />} />
               <Route path="post-listing" element={<PostListing />} />
+              <Route path="verify-phone" element={<PhoneVerificationModal />} />
 
               {/* JOBS */}
 

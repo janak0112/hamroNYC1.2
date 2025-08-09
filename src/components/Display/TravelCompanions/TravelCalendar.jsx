@@ -1,185 +1,305 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useMemo } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { DataContext } from "../../../context/DataContext";
-import { useNavigate } from "react-router-dom"; // useRouter → useNavigate
+import { useNavigate } from "react-router-dom";
 
-// Utility to normalize a date to YYYY-MM-DD
+const ACCENT = "#2563EB";
 const formatDate = (date) => date.toISOString().split("T")[0];
 
 const TravelCalendar = () => {
   const { travelCompanion } = useContext(DataContext);
-  const [datesWithCounts, setDatesWithCounts] = useState({});
+  const [datesWithCompanions, setDatesWithCompanions] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [companions, setCompanions] = useState([]);
-  const [doubleView, setDoubleView] = useState(window.innerWidth >= 640);
+  const [doubleView, setDoubleView] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 640 : true
+  );
   const navigate = useNavigate();
 
   // Responsive calendar view
   useEffect(() => {
-    const handleResize = () => {
-      setDoubleView(window.innerWidth >= 640);
-    };
+    const handleResize = () => setDoubleView(window.innerWidth >= 640);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Build a date-to-companions map
+  // Map dates -> companions[]
   useEffect(() => {
-    const counts = {};
-    travelCompanion
+    const map = {};
+    (travelCompanion || [])
       .filter((c) => !!c.date)
       .forEach((entry) => {
-        const dateStr = formatDate(new Date(entry.date));
-        counts[dateStr] = counts[dateStr]
-          ? [...counts[dateStr], entry]
-          : [entry];
+        const k = formatDate(new Date(entry.date));
+        map[k] = map[k] ? [...map[k], entry] : [entry];
       });
-
-    setDatesWithCounts(counts);
+    setDatesWithCompanions(map);
   }, [travelCompanion]);
 
+  const totalCount = useMemo(
+    () =>
+      Object.values(datesWithCompanions).reduce(
+        (n, arr) => n + (arr?.length || 0),
+        0
+      ),
+    [datesWithCompanions]
+  );
+
   const handleDateClick = (date) => {
-    const dateStr = formatDate(date);
-    setSelectedDate(dateStr);
-    setCompanions(datesWithCounts[dateStr] || []);
+    const key = formatDate(date);
+    setSelectedDate(key);
+    setCompanions(datesWithCompanions[key] || []);
   };
 
   return (
     <div className="px-4 pb-20">
-      {/* Calendar */}
-      <div className="bg-white shadow-xl rounded-2xl px-4 sm:px-6 py-6 sm:py-8 w-full max-w-[90vw] sm:max-w-3xl mx-auto">
-        <Calendar
-          onClickDay={handleDateClick}
-          showDoubleView={doubleView}
-          calendarType="gregory"
-          minDate={new Date()}
-          tileContent={({ date }) => {
-            const key = formatDate(date);
-            const count = datesWithCounts[key]?.length || 0;
-            return count > 0 ? (
-              <div className="relative w-full h-full">
-                <div className="absolute top-0.5 right-1.5 bg-[#2463EB] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full z-10">
-                  {count}
-                </div>
-              </div>
-            ) : null;
-          }}
-          tileClassName={({ date }) =>
-            selectedDate === formatDate(date)
-              ? "bg-[#2463EB] text-white font-semibold rounded-full"
-              : "hover:bg-gray-100 rounded-full"
-          }
-          className="react-calendar w-full"
-        />
+      {/* Header / Hero */}
+      <div
+        className="mx-auto max-w-5xl overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#eef3ff] to-white"
+        style={{
+          boxShadow:
+            "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)",
+        }}
+      >
+        <div className="flex flex-col items-start justify-between gap-4 px-6 py-6 sm:flex-row sm:items-end sm:px-8">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Find a Travel Companion
+            </h1>
+            <p className="mt-1 text-sm text-gray-600">
+              Pick a date to see who’s flying.{" "}
+              <span className="font-semibold text-gray-800">{totalCount}</span>{" "}
+              companion{totalCount === 1 ? "" : "s"} posted.
+            </p>
+          </div>
+          <div
+            className="rounded-xl px-3 py-1 text-xs font-semibold"
+            style={{
+              background: "rgba(37,99,235,.12)",
+              color: ACCENT,
+              border: "1px solid rgba(37,99,235,.2)",
+            }}
+          >
+            HamroNYC • Travel
+          </div>
+        </div>
+
+        {/* Calendar in soft card */}
+        <div className="border-t border-gray-100 bg-white/70 px-4 py-6 sm:px-8">
+          <div className="mx-auto w-full max-w-[90vw] sm:max-w-3xl">
+            <Calendar
+              onClickDay={handleDateClick}
+              showDoubleView={doubleView}
+              calendarType="gregory"
+              minDate={new Date()}
+              tileContent={({ date }) => {
+                const key = formatDate(date);
+                const count = datesWithCompanions[key]?.length || 0;
+                return count > 0 ? (
+                  <div className="relative h-full w-full">
+                    {/* tiny pill in corner */}
+                    <div
+                      className="absolute right-1.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-white"
+                      style={{ background: ACCENT }}
+                    >
+                      {count}
+                    </div>
+                    {/* dot under number */}
+                    <div
+                      className="absolute bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
+                      style={{ background: ACCENT }}
+                    />
+                  </div>
+                ) : null;
+              }}
+              tileClassName={({ date }) =>
+                selectedDate === formatDate(date) ? "rc-selected" : "rc-default"
+              }
+              className="react-calendar w-full rounded-2xl border border-gray-100 p-3"
+            />
+          </div>
+
+          {/* Legend */}
+          <div className="mx-auto mt-4 flex max-w-3xl items-center justify-center gap-4 text-xs text-gray-600">
+            <span className="inline-flex items-center gap-2">
+              <span
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ background: ACCENT }}
+              />
+              Dates with companions
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span
+                className="inline-block h-4 w-4 rounded-full text-[10px] text-white grid place-items-center"
+                style={{ background: ACCENT }}
+              >
+                #
+              </span>{" "}
+              Count per day
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Action buttons */}
-      <div className="mt-10 text-center">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+      {/* Quick actions */}
+      <div className="mt-8 text-center">
+        <h3 className="mb-3 text-lg font-semibold text-gray-900">
           Want to post your travel?
         </h3>
-        <div className="flex justify-center gap-4 flex-wrap">
+        <div className="flex flex-wrap justify-center gap-3">
           <button
             onClick={() => navigate("/add-your-flight")}
-            className="bg-[#2563eb] text-white px-5 py-2 rounded-full hover:bg-[#1e4ed8] transition"
+            className="rounded-full bg-[var(--accent,#2563EB)] px-5 py-2 text-white transition hover:opacity-90"
+            style={{ ["--accent"]: ACCENT }}
           >
             ✈️ Add Your Flight
           </button>
           <button
             onClick={() => navigate("/post-looking")}
-            className="border border-[#2563eb] text-[#2563eb] px-5 py-2 rounded-full hover:bg-[#ebf0ff] transition"
+            className="rounded-full border border-[var(--accent,#2563EB)] px-5 py-2 text-[var(--accent,#2563EB)] transition hover:bg-[#eef3ff]"
+            style={{ ["--accent"]: ACCENT }}
           >
-            👀 Post You're Looking
+            👀 Post You’re Looking
           </button>
         </div>
       </div>
 
       {/* Disclaimer */}
-      <div className="mt-8 max-w-4xl mx-auto text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="mx-auto mt-6 max-w-4xl rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-700">
         <p className="font-medium text-yellow-800">⚠️ Disclaimer:</p>
         <p className="mt-2">
           This platform is intended{" "}
-          <strong>only for individuals seeking travel companions</strong>
-          —especially our <strong>
-            Ama, Buwa, and first-time travelers
-          </strong>{" "}
+          <strong>only for individuals seeking travel companions</strong> —
+          especially our <strong>Ama, Buwa, and first-time travelers</strong>{" "}
           who may need assistance navigating flights.
           <br />
           <strong>
-            ⚠️ Please do not use this to send documents, luggage, or any
-            personal items.
+            Do not use this to send documents, luggage, or personal items.
           </strong>
         </p>
       </div>
 
-      {/* Companions list */}
+      {/* Selected date summary */}
       {selectedDate && (
-        <div className="mt-10 max-w-5xl mx-auto">
-          <h2 className="text-2xl font-extrabold text-center mb-6 text-gray-900 tracking-tight">
-            <span className="text-[#2463EB]">Companions</span> on{" "}
-            {new Date(selectedDate).toDateString()}
-          </h2>
+        <div className="mx-auto mt-10 max-w-5xl">
+          <div
+            className="mb-6 rounded-2xl border border-gray-100 bg-white px-5 py-4 text-center shadow-sm"
+            style={{
+              boxShadow:
+                "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06)",
+            }}
+          >
+            <h2 className="text-xl font-bold text-gray-900">
+              Companions on{" "}
+              <span
+                className="text-[var(--accent,#2563EB)]"
+                style={{ ["--accent"]: ACCENT }}
+              >
+                {new Date(selectedDate).toDateString()}
+              </span>
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              {companions.length} companion{companions.length === 1 ? "" : "s"}{" "}
+              found for this day.
+            </p>
+          </div>
 
           {companions.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              {companions.map((c) => (
-                <div
-                  key={c.$id}
-                  className="p-5 border border-gray-300 rounded-xl bg-white shadow-sm hover:shadow-md transition"
-                >
-                  <p className="text-base font-bold text-gray-800 mb-1">
-                    {c.fromLocation} → {c.toLocation}
-                    {c.transitAirport && (
-                      <span className="text-sm font-medium text-gray-500">
-                        {" "}
-                        (via {c.transitAirport.toUpperCase()})
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    {c.description || "No details provided."}
-                  </p>
-                  <div className="mt-4 space-y-1 text-sm">
-                    <div>
-                      <span className="font-semibold text-gray-700">
-                        📞 Contact:
-                      </span>{" "}
-                      <a
-                        href={`tel:${c.contact}`}
-                        className="text-[#2563EB] font-medium hover:underline"
-                      >
-                        {c.contact || "Not provided"}
-                      </a>
-                    </div>
-                    <div>
-                      <span className="font-semibold text-gray-700">
-                        👤 Posted By:
-                      </span>{" "}
-                      <span className="font-medium ">
-                        {c.postedBy
-                          ? JSON.parse(c.postedBy)
-                              .name.split(" ")
-                              .map(
-                                (word) =>
-                                  word.charAt(0).toUpperCase() +
-                                  word.slice(1).toLowerCase()
-                              )
-                              .join(" ")
-                          : "Not provided"}
-                      </span>
+              {companions.map((c) => {
+                const via = c.transitAirport?.toUpperCase();
+                const name = (() => {
+                  try {
+                    return c.postedBy
+                      ? JSON.parse(c.postedBy)
+                          .name.split(" ")
+                          .map(
+                            (w) =>
+                              w.charAt(0).toUpperCase() +
+                              w.slice(1).toLowerCase()
+                          )
+                          .join(" ")
+                      : "Not provided";
+                  } catch {
+                    return "Not provided";
+                  }
+                })();
+
+                return (
+                  <div
+                    key={c.$id}
+                    className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md"
+                  >
+                    <p className="mb-1 text-base font-bold text-gray-900">
+                      {c.fromLocation} → {c.toLocation}
+                      {via && (
+                        <span className="ml-1 text-sm font-medium text-gray-500">
+                          {" "}
+                          (via {via})
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {c.description || "No details provided."}
+                    </p>
+
+                    <div className="mt-4 space-y-1 text-sm">
+                      <div>
+                        <span className="font-semibold text-gray-700">
+                          📞 Contact:
+                        </span>{" "}
+                        {c.contact ? (
+                          <a
+                            href={`tel:${c.contact}`}
+                            className="font-medium text-[var(--accent,#2563EB)] hover:underline"
+                            style={{ ["--accent"]: ACCENT }}
+                          >
+                            {c.contact}
+                          </a>
+                        ) : (
+                          <span className="text-gray-500">Not provided</span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-700">
+                          👤 Posted By:
+                        </span>{" "}
+                        <span className="font-medium">{name}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <p className="text-gray-600 text-center">
+            <p className="text-center text-gray-600">
               No companions available on this date.
             </p>
           )}
         </div>
       )}
+
+      {/* Tiny CSS touch-ups for react-calendar */}
+      <style>{`
+        .react-calendar {
+          font-family: inherit;
+        }
+        .react-calendar .react-calendar__tile {
+          border-radius: 10px;
+        }
+        .react-calendar .react-calendar__tile:hover {
+          background: #f5f7ff;
+        }
+        .rc-selected {
+          background: ${ACCENT} !important;
+          color: #fff !important;
+          border-radius: 9999px;
+          font-weight: 600;
+        }
+        .rc-default {
+          border-radius: 9999px;
+        }
+      `}</style>
     </div>
   );
 };

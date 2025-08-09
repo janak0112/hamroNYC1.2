@@ -1,5 +1,6 @@
 import conf from "../conf/conf";
 import { Client, Account } from "appwrite";
+import { ID } from "appwrite";
 
 // Initialize Appwrite Client and Account
 const client = new Client();
@@ -89,13 +90,51 @@ export const logout = async () => {
   }
 };
 
+/* --------------------  Phone Verification -------------------- */
+// Start phone verification (sends OTP via SMS)
+export const startPhoneVerification = async (phoneNumber) => {
+  try {
+    // phoneNumber format: +11234567890
+    const token = await account.createPhoneToken(ID.unique(), phoneNumber);
+    return res; // contains userId for OTP verification
+  } catch (error) {
+    console.error("Phone verification error:", error);
+    throw error;
+  }
+};
+
+// Verify OTP code
+export const verifyPhoneCode = async (userId, otpCode) => {
+  try {
+    return await account.updatePhoneSession(userId, otpCode);
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    throw error;
+  }
+};
+
+// Check if current user is phone verified
+export const isPhoneVerified = async () => {
+  try {
+    const me = await account.get();
+    return !!me.phoneVerification;
+  } catch (error) {
+    console.error("isPhoneVerified error:", error);
+    return false;
+  }
+};
+
 const authService = {
   createAccount,
   login,
   loginWithGoogle,
-  getCurrentUser,
   loginWithFacebook,
+  getCurrentUser,
+  getUserById,
   logout,
+  startPhoneVerification,
+  verifyPhoneCode,
+  isPhoneVerified,
 };
 
 export default authService;

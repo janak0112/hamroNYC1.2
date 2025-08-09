@@ -1,13 +1,67 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import listingService from "../../../appwrite/config";
-import authService from "../../../appwrite/auth";
-import { uploadImages } from "../../../utils/uploadFile"; // Utility function
+import { uploadImages } from "../../../utils/uploadFile";
 import conf from "../../../conf/conf";
-
+import { checkUserLoggedIn } from "../../../utils/authUtils";
+import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import {
+  CalendarDays,
+  Clock,
+  MapPin,
+  Link2,
+  Ticket,
+  Globe2,
+  Building2,
+} from "lucide-react";
+
+const ACCENT = "#CD4A3D";
+
+const Label = ({ htmlFor, children, required }) => (
+  <label
+    htmlFor={htmlFor}
+    className="mb-1 block text-sm font-semibold text-gray-800"
+  >
+    {children} {required && <span className="text-red-500">*</span>}
+  </label>
+);
+
+const Input = ({ error, className = "", ...rest }) => (
+  <input
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition
+      placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10
+      ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"}
+      ${className}`}
+  />
+);
+
+const Textarea = ({ error, className = "", ...rest }) => (
+  <textarea
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition
+      placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10
+      ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"}
+      ${className}`}
+    rows={5}
+  />
+);
+
+const Select = ({ error, className = "", children, ...rest }) => (
+  <select
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition
+      focus:ring-2 focus:ring-gray-900/10
+      ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"}
+      ${className}`}
+  >
+    {children}
+  </select>
+);
+
+const FieldError = ({ message }) =>
+  message ? <p className="mt-1 text-xs text-red-600">{message}</p> : null;
 
 const EventPostForm = () => {
   const {
@@ -15,47 +69,40 @@ const EventPostForm = () => {
     handleSubmit,
     watch,
     formState: { errors },
-    reset,
+    setValue,
   } = useForm();
 
   const [postedBy, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
   const navigate = useNavigate();
 
   const ticketOption = watch("ticketOption");
-  const eventMode = watch("eventMode"); // Online vs In-Person toggle
+  const eventMode = watch("eventMode");
 
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        if (currentUser) {
-          setUser({ id: currentUser.$id, name: currentUser.name });
-          console.log(postedBy);
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Error checking user:", error);
-        navigate("/login");
-      }
+    const verifyUser = async () => {
+      const user = await checkUserLoggedIn({ navigate });
+      if (user) setUser({ id: user.$id, name: user.name });
     };
-    checkUser();
+    verifyUser();
   }, [navigate]);
 
+  // Reset conditional fields when toggles change
+  useEffect(() => {
+    if (eventMode !== "inPerson") setValue("location", "");
+    if (eventMode !== "online") setValue("onlineLink", "");
+  }, [eventMode, setValue]);
+
+  useEffect(() => {
+    if (ticketOption !== "paid") setValue("ticketCost", "");
+  }, [ticketOption, setValue]);
+
   const onSubmit = async (data) => {
-    if (!postedBy) {
-      setErrorMessage("Please log in to create an Events listing.");
-      return;
-    }
-
     setIsSubmitting(true);
-
     try {
       let uploadedImageIds = [];
       if (selectedFiles.length > 0) {
@@ -63,14 +110,15 @@ const EventPostForm = () => {
       }
 
       const eventData = {
-        title: data.title,
-        description: data.description,
-        location: data.eventMode === "inPerson" ? data.location : null,
-        contact: data.contact,
+        title: data.title?.trim(),
+        description: data.description?.trim(),
+        location: data.eventMode === "inPerson" ? data.location?.trim() : null,
+        contact: data.contact?.trim(),
         eventDate: data.eventDate,
         eventTime: data.eventTime,
         ticketOption: data.ticketOption,
-        ticketCost: data.ticketOption === "paid" ? data.ticketCost : null,
+        ticketCost:
+          data.ticketOption === "paid" ? parseFloat(data.ticketCost) : null,
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,
@@ -78,298 +126,337 @@ const EventPostForm = () => {
         postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
-      const response = await listingService.createDocument(
+      createDocumentWithToast(
         eventData,
-        conf.appWriteCollectionIdEvents
+        conf.appWriteCollectionIdEvents,
+        navigate
       );
-
-      reset();
-      setSelectedFiles([]);
-      toast.success("Event created successfully!");
-
-      setTimeout(() => {
-        navigate("/events");
-      }, 1000);
-    } catch (error) {
-      console.error("Error creating event listing:", error);
-      toast.error("❌ Failed to submit flight. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-6 py-20">
-      <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
-        Create Event Listing
-      </h2>
-
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="max-w-xl mx-auto space-y-4"
+    <div className="mx-auto max-w-5xl px-4 py-12">
+      {/* Hero / Header */}
+      <div
+        className="relative overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#fff6f5] to-white"
+        style={{
+          boxShadow:
+            "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)",
+        }}
       >
-        {/* Title */}
-        <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-semibold mb-2 mb-2"
-          >
-            Event Title
-          </label>
-          <input
-            id="title"
-            type="text"
-            placeholder="Event Title"
-            {...register("title", { required: "Event title is required" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.title && (
-            <p className="text-red-500 text-xs">{errors.title.message}</p>
-          )}
-        </div>
-
-        {/* Description */}
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-semibold mb-2"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
-            placeholder="Describe the event"
-            {...register("description", {
-              required: "Description is required",
-            })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.description && (
-            <p className="text-red-500 text-xs">{errors.description.message}</p>
-          )}
-        </div>
-
-        {/* Event Mode */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">Event Mode</label>
-          <select
-            {...register("eventMode", { required: "Please select event mode" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="">-- Select Mode --</option>
-            <option value="inPerson">In-Person</option>
-            <option value="online">Online</option>
-          </select>
-          {errors.eventMode && (
-            <p className="text-red-500 text-xs">{errors.eventMode.message}</p>
-          )}
-        </div>
-
-        {/* Location (Only if In-Person) */}
-        {eventMode === "inPerson" && (
-          <div>
-            <label
-              htmlFor="location"
-              className="block text-sm font-semibold mb-2"
-            >
-              Event Location
-            </label>
-            <input
-              id="location"
-              type="text"
-              placeholder="Event Location"
-              {...register("location", { required: "Location is required" })}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-            {errors.location && (
-              <p className="text-red-500 text-xs">{errors.location.message}</p>
-            )}
-          </div>
-        )}
-
-        {/* Online Link (Only if Online) */}
-        {eventMode === "online" && (
-          <div>
-            <label
-              htmlFor="onlineLink"
-              className="block text-sm font-semibold mb-2"
-            >
-              Online Meeting Link
-            </label>
-            <input
-              id="onlineLink"
-              type="url"
-              placeholder="https://zoom.us/meeting-link"
-              {...register("onlineLink", {
-                required: "Online link is required for online events",
-                pattern: {
-                  value:
-                    /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
-                  message: "Please enter a valid URL",
-                },
-              })}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-            {errors.onlineLink && (
-              <p className="text-red-500 text-xs">
-                {errors.onlineLink.message}
+        <div className="px-6 py-8 sm:px-10">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                Create Event Listing
+              </h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Share your community event—online or in-person.
               </p>
-            )}
-          </div>
-        )}
-
-        {/* Contact */}
-        <div>
-          <label htmlFor="contact" className="block text-sm font-semibold mb-2">
-            Contact Info
-          </label>
-          <input
-            id="contact"
-            type="text"
-            placeholder="Contact Info"
-            {...register("contact", { required: "Contact info is required" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.contact && (
-            <p className="text-red-500 text-xs">{errors.contact.message}</p>
-          )}
-        </div>
-
-        {/* Event Date & Time in One Row */}
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Event Date */}
-          <div className="flex-1">
-            <label
-              htmlFor="eventDate"
-              className="block text-sm font-semibold mb-2"
+            </div>
+            <div
+              className="rounded-xl px-3 py-1 text-xs font-semibold"
+              style={{
+                background: "rgba(205,74,61,.1)",
+                color: ACCENT,
+                border: "1px solid rgba(205,74,61,.2)",
+              }}
             >
-              Event Date
-            </label>
-            <input
-              id="eventDate"
-              type="date"
-              min={today}
-              {...register("eventDate", { required: "Event date is required" })}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-            {errors.eventDate && (
-              <p className="text-red-500 text-xs">{errors.eventDate.message}</p>
-            )}
+              Events
+            </div>
           </div>
 
-          {/* Event Time */}
-          <div className="flex-1">
-            <label
-              htmlFor="eventTime"
-              className="block text-sm font-semibold mb-2"
-            >
-              Event Time
-            </label>
-            <input
-              id="eventTime"
-              type="time"
-              {...register("eventTime", { required: "Event time is required" })}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-            {errors.eventTime && (
-              <p className="text-red-500 text-xs">{errors.eventTime.message}</p>
-            )}
+          {/* Helper strip */}
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <CalendarDays className="h-4 w-4" /> Date & Time
+              </div>
+              Pick a future date and add the start time.
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <Ticket className="h-4 w-4" /> Tickets
+              </div>
+              Mark it free or paid, and add a link if needed.
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <Globe2 className="h-4 w-4" /> Mode
+              </div>
+              Online events need a meeting link; in-person needs a location.
+            </div>
           </div>
         </div>
 
-        {/* Ticket Option */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">
-            Ticket Option
-          </label>
-          <select
-            {...register("ticketOption", {
-              required: "Please select an option",
-            })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="">-- Select --</option>
-            <option value="free">Free Entry</option>
-            <option value="paid">Paid Ticket</option>
-          </select>
-          {errors.ticketOption && (
-            <p className="text-red-500 text-xs">
-              {errors.ticketOption.message}
-            </p>
-          )}
-        </div>
+        <div className="border-t border-gray-100 bg-white/70 px-6 py-8 sm:px-10">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basic info */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <Label htmlFor="title" required>
+                  Event Title
+                </Label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder="e.g., Dashain Cultural Night"
+                  {...register("title", {
+                    required: "Event title is required",
+                    minLength: {
+                      value: 3,
+                      message: "Title must be at least 3 characters",
+                    },
+                  })}
+                  error={!!errors.title}
+                />
+                <FieldError message={errors.title?.message} />
+              </div>
 
-        {/* Ticket Cost */}
-        {ticketOption === "paid" && (
-          <div>
-            <label
-              htmlFor="ticketCost"
-              className="block text-sm font-semibold mb-2"
-            >
-              Ticket Cost ($)
-            </label>
-            <input
-              id="ticketCost"
-              type="number"
-              step="0.01"
-              placeholder="Enter ticket price"
-              {...register("ticketCost", {
-                required: "Ticket cost is required for paid events",
-                min: { value: 0, message: "Cost cannot be negative" },
-              })}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-            {errors.ticketCost && (
-              <p className="text-red-500 text-xs">
-                {errors.ticketCost.message}
+              <div className="md:col-span-2">
+                <Label htmlFor="description" required>
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe the event agenda, performers, dress code, etc."
+                  {...register("description", {
+                    required: "Description is required",
+                    minLength: {
+                      value: 10,
+                      message: "Description must be at least 10 characters",
+                    },
+                  })}
+                  error={!!errors.description}
+                />
+                <FieldError message={errors.description?.message} />
+              </div>
+            </section>
+
+            {/* Mode & location/link */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="eventMode" required>
+                  Event Mode
+                </Label>
+                <Select
+                  id="eventMode"
+                  {...register("eventMode", {
+                    required: "Please select event mode",
+                  })}
+                  error={!!errors.eventMode}
+                >
+                  <option value="">-- Select Mode --</option>
+                  <option value="inPerson">In-Person</option>
+                  <option value="online">Online</option>
+                </Select>
+                <FieldError message={errors.eventMode?.message} />
+              </div>
+
+              {eventMode === "inPerson" && (
+                <div>
+                  <Label htmlFor="location" required>
+                    Event Location
+                  </Label>
+                  <div className="relative">
+                    <MapPin className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="location"
+                      type="text"
+                      placeholder="Venue name, street, city"
+                      className="pl-9"
+                      {...register("location", {
+                        required: "Location is required",
+                      })}
+                      error={!!errors.location}
+                    />
+                  </div>
+                  <FieldError message={errors.location?.message} />
+                </div>
+              )}
+
+              {eventMode === "online" && (
+                <div className="md:col-span-1">
+                  <Label htmlFor="onlineLink" required>
+                    Online Meeting Link
+                  </Label>
+                  <div className="relative">
+                    <Link2 className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="onlineLink"
+                      type="url"
+                      placeholder="https://zoom.us/..."
+                      className="pl-9"
+                      {...register("onlineLink", {
+                        required: "Online link is required for online events",
+                        pattern: {
+                          value:
+                            /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                          message: "Please enter a valid URL",
+                        },
+                      })}
+                      error={!!errors.onlineLink}
+                    />
+                  </div>
+                  <FieldError message={errors.onlineLink?.message} />
+                </div>
+              )}
+
+              <div className="md:col-span-2">
+                <Label htmlFor="contact" required>
+                  Contact Info
+                </Label>
+                <Input
+                  id="contact"
+                  type="text"
+                  placeholder="Name / email / phone"
+                  {...register("contact", {
+                    required: "Contact info is required",
+                  })}
+                  error={!!errors.contact}
+                />
+                <FieldError message={errors.contact?.message} />
+              </div>
+            </section>
+
+            {/* Date & time */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="eventDate" required>
+                  Event Date
+                </Label>
+                <div className="relative">
+                  <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="eventDate"
+                    type="date"
+                    min={today}
+                    className="pl-9"
+                    {...register("eventDate", {
+                      required: "Event date is required",
+                    })}
+                    error={!!errors.eventDate}
+                  />
+                </div>
+                <FieldError message={errors.eventDate?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="eventTime" required>
+                  Event Time
+                </Label>
+                <div className="relative">
+                  <Clock className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="eventTime"
+                    type="time"
+                    className="pl-9"
+                    {...register("eventTime", {
+                      required: "Event time is required",
+                    })}
+                    error={!!errors.eventTime}
+                  />
+                </div>
+                <FieldError message={errors.eventTime?.message} />
+              </div>
+            </section>
+
+            {/* Tickets */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="ticketOption" required>
+                  Ticket Option
+                </Label>
+                <Select
+                  id="ticketOption"
+                  {...register("ticketOption", {
+                    required: "Please select an option",
+                  })}
+                  error={!!errors.ticketOption}
+                >
+                  <option value="">-- Select --</option>
+                  <option value="free">Free Entry</option>
+                  <option value="paid">Paid Ticket</option>
+                </Select>
+                <FieldError message={errors.ticketOption?.message} />
+              </div>
+
+              {ticketOption === "paid" && (
+                <div>
+                  <Label htmlFor="ticketCost" required>
+                    Ticket Cost ($)
+                  </Label>
+                  <Input
+                    id="ticketCost"
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g., 15.00"
+                    {...register("ticketCost", {
+                      required: "Ticket cost is required for paid events",
+                      min: { value: 0, message: "Cost cannot be negative" },
+                    })}
+                    error={!!errors.ticketCost}
+                  />
+                  <FieldError message={errors.ticketCost?.message} />
+                </div>
+              )}
+
+              <div className="md:col-span-2">
+                <Label htmlFor="ticketLink">
+                  Ticket / Registration Link (optional)
+                </Label>
+                <Input
+                  id="ticketLink"
+                  type="url"
+                  placeholder="https://eventbrite.com/your-event"
+                  {...register("ticketLink", {
+                    pattern: {
+                      value:
+                        /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                      message: "Please enter a valid URL",
+                    },
+                  })}
+                  error={!!errors.ticketLink}
+                />
+                <FieldError message={errors.ticketLink?.message} />
+              </div>
+            </section>
+
+            {/* Images */}
+            <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Event Images
+                </h3>
+              </div>
+              <p className="mb-3 text-xs text-gray-500">
+                Add a poster or venue photo. First image becomes the cover.
               </p>
-            )}
-          </div>
-        )}
+              <ImageUploader
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                imagePreview={imagePreview}
+                setImagePreview={setImagePreview}
+              />
+            </section>
 
-        {/* Ticket/Register Link */}
-        <div>
-          <label
-            htmlFor="ticketLink"
-            className="block text-sm font-semibold mb-2"
-          >
-            Ticket / Registration Link (optional)
-          </label>
-          <input
-            id="ticketLink"
-            type="url"
-            placeholder="https://eventbrite.com/your-event"
-            {...register("ticketLink", {
-              pattern: {
-                value:
-                  /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
-                message: "Please enter a valid URL",
-              },
-            })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          />
-          {errors.ticketLink && (
-            <p className="text-red-500 text-xs">{errors.ticketLink.message}</p>
-          )}
+            {/* Submit */}
+            <div className="flex items-center justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--accent,#CD4A3D)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto"
+                style={{ ["--accent"]: ACCENT }}
+              >
+                {isSubmitting ? "Creating Listing..." : "Create Listing"}
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* Image Upload */}
-        <ImageUploader
-          selectedFiles={selectedFiles}
-          setSelectedFiles={setSelectedFiles}
-          imagePreview={imagePreview}
-          setImagePreview={setImagePreview}
-        />
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Creating Listing..." : "Create Listing"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };
