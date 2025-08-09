@@ -5,7 +5,7 @@ import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import conf from "../../../conf/conf";
 
-const ACCENT = "#2563EB";
+const ACCENT = "#CD4A3D";
 const todayStr = () => new Date().toISOString().split("T")[0];
 
 const AddFlightForm = () => {

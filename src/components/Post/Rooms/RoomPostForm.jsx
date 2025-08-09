@@ -118,7 +118,7 @@ const RoomPostForm = () => {
       const roomData = {
         title: data.title?.trim(),
         description: data.description?.trim(),
-        price: data.price ? Number(data.price) : 0,
+        price: data.price ? data.price : 0,
         location: data.location?.trim(),
         contact: data.contact?.trim(),
         bedrooms: parseInt(data.bedrooms, 10),

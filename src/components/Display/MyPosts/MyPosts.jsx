@@ -138,7 +138,6 @@ const MyPosts = () => {
               link={item.link}
             >
               <PostSection
-                title={`My ${item.title}`}
                 data={item.data}
                 loading={false}
                 error={null}

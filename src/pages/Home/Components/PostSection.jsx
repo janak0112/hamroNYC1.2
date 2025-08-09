@@ -23,7 +23,7 @@ const PostSection = ({ title, data = [], loading, error, link }) => (
     ) : data.length === 0 ? (
       <p className="text-gray-500">No data available.</p>
     ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="flex flex-wrap gap-5 justify-right">
         {data.map((post) => (
           <PostCard key={post.$id} post={post} />
         ))}

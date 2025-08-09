@@ -4,6 +4,7 @@ import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Menu, X, User2, Plus, LogOut } from "lucide-react";
 import authService from "../../appwrite/auth";
+import logo from "../../assets/img/logo-2d.png";
 
 const ACCENT = "#CD4A3D";
 
@@ -83,7 +84,7 @@ const Header = forwardRef(function Header(_, ref) {
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src="/img/logo.png"
+              src={logo}
               alt="HamroNYC"
               className="h-9 w-9 rounded-2xl object-contain ring-1 ring-gray-100"
             />

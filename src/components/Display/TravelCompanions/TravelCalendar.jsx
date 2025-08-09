@@ -4,7 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import { DataContext } from "../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 
-const ACCENT = "#2563EB";
+const ACCENT = "#CD4A3D";
 const formatDate = (date) => date.toISOString().split("T")[0];
 
 const TravelCalendar = () => {
@@ -139,44 +139,6 @@ const TravelCalendar = () => {
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Quick actions */}
-      <div className="mt-8 text-center">
-        <h3 className="mb-3 text-lg font-semibold text-gray-900">
-          Want to post your travel?
-        </h3>
-        <div className="flex flex-wrap justify-center gap-3">
-          <button
-            onClick={() => navigate("/add-your-flight")}
-            className="rounded-full bg-[var(--accent,#2563EB)] px-5 py-2 text-white transition hover:opacity-90"
-            style={{ ["--accent"]: ACCENT }}
-          >
-            ✈️ Add Your Flight
-          </button>
-          <button
-            onClick={() => navigate("/post-looking")}
-            className="rounded-full border border-[var(--accent,#2563EB)] px-5 py-2 text-[var(--accent,#2563EB)] transition hover:bg-[#eef3ff]"
-            style={{ ["--accent"]: ACCENT }}
-          >
-            👀 Post You’re Looking
-          </button>
-        </div>
-      </div>
-
-      {/* Disclaimer */}
-      <div className="mx-auto mt-6 max-w-4xl rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-700">
-        <p className="font-medium text-yellow-800">⚠️ Disclaimer:</p>
-        <p className="mt-2">
-          This platform is intended{" "}
-          <strong>only for individuals seeking travel companions</strong> —
-          especially our <strong>Ama, Buwa, and first-time travelers</strong>{" "}
-          who may need assistance navigating flights.
-          <br />
-          <strong>
-            Do not use this to send documents, luggage, or personal items.
-          </strong>
-        </p>
       </div>
 
       {/* Selected date summary */}

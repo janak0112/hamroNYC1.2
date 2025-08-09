@@ -3,13 +3,14 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
-import { uploadImages } from "../../../utils/uploadFile"; // Utility function
-import { Storage } from "appwrite";
+import { uploadImages } from "../../../utils/uploadFile";
 import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
 
 import ImageUploader from "../../ImageUploader/ImageUploader";
+
+const ACCENT = "#CD4A3D";
 
 const EventEditForm = () => {
   const {
@@ -18,6 +19,7 @@ const EventEditForm = () => {
     watch,
     formState: { errors },
     reset,
+    setValue,
   } = useForm();
 
   const [postedBy, setUser] = useState({});
@@ -37,8 +39,6 @@ const EventEditForm = () => {
   const eventMode = watch("eventMode");
   const today = new Date().toISOString().split("T")[0];
 
-  const storage = new Storage();
-
   // ✅ Check logged-in user
   useEffect(() => {
     const checkUser = async () => {
@@ -57,7 +57,7 @@ const EventEditForm = () => {
     checkUser();
   }, [navigate]);
 
-  // ✅ Fetch event and format data
+  // ✅ Fetch event and hydrate the form
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -83,9 +83,6 @@ const EventEditForm = () => {
             preview: getFilePreview(fileId),
           }));
           setExistingImages(urls);
-
-          console.log("Resolved previews:", urls);
-          setExistingImages(urls);
         }
       } catch (error) {
         console.error("❌ Failed to fetch event:", error);
@@ -95,7 +92,7 @@ const EventEditForm = () => {
     if (id) fetchEvent();
   }, [id, reset]);
 
-  // ✅ Handle submit
+  // ✅ Submit update
   const onSubmit = async (data) => {
     if (!postedBy) {
       setErrorMessage("Please log in to update an Event listing.");
@@ -122,25 +119,21 @@ const EventEditForm = () => {
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,
-        imageIds: [
-          ...existingImages.map((img) => img.id), // only the images that are left
-          ...uploadedImageIds,
-        ],
+        imageIds: [...existingImages.map((img) => img.id), ...uploadedImageIds],
         postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
-      const response = await listingService.updateDocument(
+      await listingService.updateDocument(
         conf.appWriteCollectionIdEvents,
         id,
         eventData
       );
 
       setShowSuccessModal(true);
-
       setTimeout(() => {
         setShowSuccessModal(false);
         navigate(`/event/${id}`);
-      }, 3000);
+      }, 1200);
     } catch (error) {
       console.error("❌ Error updating event:", error);
       setErrorMessage("Failed to update event.");
@@ -149,142 +142,161 @@ const EventEditForm = () => {
     }
   };
 
-  return (
-    <div className="container mx-auto px-6 py-20">
-      <h2 className="text-3xl font-bold text-center mb-6 heading-primary">
-        Edit Event
-      </h2>
+  // UI helpers
+  const inputBase =
+    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10";
+  const labelBase = "mb-1 block text-sm font-semibold text-gray-800";
+  const fieldError = (msg) =>
+    msg ? <p className="mt-1 text-xs text-red-600">{msg}</p> : null;
 
+  return (
+    <div className="mx-auto max-w-3xl px-6 py-14">
+      {/* Header Card */}
+      <div
+        className="overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#eef3ff] to-white p-6 sm:p-8"
+        style={{
+          boxShadow:
+            "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)",
+        }}
+      >
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+          Edit{" "}
+          <span
+            className="text-[var(--accent,#2563EB)]"
+            style={{ ["--accent"]: ACCENT }}
+          >
+            Event
+          </span>
+        </h2>
+        <p className="mt-1 text-sm text-gray-600">
+          Update details, switch between in-person and online, and manage
+          images.
+        </p>
+
+        {/* Segmented: Event Mode */}
+        <div className="mt-5">
+          <label className={labelBase}>Event Mode</label>
+          <div className="inline-grid grid-cols-2 rounded-2xl border border-gray-200 bg-white p-1">
+            {[
+              { id: "inPerson", label: "In-Person" },
+              { id: "online", label: "Online" },
+            ].map(({ id: val, label }) => (
+              <button
+                type="button"
+                key={val}
+                onClick={() =>
+                  setValue("eventMode", val, { shouldValidate: true })
+                }
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  watch("eventMode") === val
+                    ? "bg-[var(--accent,#2563EB)] text-white"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                style={{ ["--accent"]: ACCENT }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {fieldError(errors.eventMode?.message)}
+        </div>
+      </div>
+
+      {/* Form Card */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-xl mx-auto space-y-4"
+        className="mt-8 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm"
+        style={{
+          boxShadow:
+            "0 1px 0 rgba(16,24,40,.03), 0 8px 24px rgba(16,24,40,.06)",
+        }}
       >
         {/* Title */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-semibold mb-2">
+        <div className="mb-4">
+          <label htmlFor="title" className={labelBase}>
             Event Title
           </label>
           <input
             id="title"
             type="text"
-            placeholder="Event Title"
+            placeholder="Nepal Day Celebration"
             {...register("title", { required: "Event title is required" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className={inputBase}
           />
-          {errors.title && (
-            <p className="text-red-500 text-xs">{errors.title.message}</p>
-          )}
+          {fieldError(errors.title?.message)}
         </div>
 
         {/* Description */}
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-semibold mb-2"
-          >
+        <div className="mb-4">
+          <label htmlFor="description" className={labelBase}>
             Description
           </label>
           <textarea
             id="description"
+            rows={4}
             placeholder="Describe the event"
             {...register("description", {
               required: "Description is required",
             })}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className={`${inputBase} min-h-[110px]`}
           />
-          {errors.description && (
-            <p className="text-red-500 text-xs">{errors.description.message}</p>
-          )}
+          {fieldError(errors.description?.message)}
         </div>
 
-        {/* Event Mode */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">Event Mode</label>
-          <select
-            {...register("eventMode", { required: "Please select event mode" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="">-- Select Mode --</option>
-            <option value="inPerson">In-Person</option>
-            <option value="online">Online</option>
-          </select>
-          {errors.eventMode && (
-            <p className="text-red-500 text-xs">{errors.eventMode.message}</p>
-          )}
-        </div>
-
-        {/* Location (In-Person only) */}
+        {/* Conditional: Location / Online Link */}
         {eventMode === "inPerson" && (
-          <div>
-            <label
-              htmlFor="location"
-              className="block text-sm font-semibold mb-2"
-            >
+          <div className="mb-4">
+            <label htmlFor="location" className={labelBase}>
               Event Location
             </label>
             <input
               id="location"
               type="text"
-              placeholder="Event Location"
+              placeholder="123 Main St, Queens, NY"
               {...register("location", { required: "Location is required" })}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputBase}
             />
-            {errors.location && (
-              <p className="text-red-500 text-xs">{errors.location.message}</p>
-            )}
+            {fieldError(errors.location?.message)}
           </div>
         )}
 
-        {/* Online Link (Online only) */}
         {eventMode === "online" && (
-          <div>
-            <label
-              htmlFor="onlineLink"
-              className="block text-sm font-semibold mb-2"
-            >
+          <div className="mb-4">
+            <label htmlFor="onlineLink" className={labelBase}>
               Online Meeting Link
             </label>
             <input
               id="onlineLink"
               type="url"
-              placeholder="https://zoom.us/meeting-link"
+              placeholder="https://zoom.us/your-link"
               {...register("onlineLink", {
                 required: "Online link is required for online events",
               })}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputBase}
             />
-            {errors.onlineLink && (
-              <p className="text-red-500 text-xs">
-                {errors.onlineLink.message}
-              </p>
-            )}
+            {fieldError(errors.onlineLink?.message)}
           </div>
         )}
 
         {/* Contact */}
-        <div>
-          <label htmlFor="contact" className="block text-sm font-semibold mb-2">
+        <div className="mb-4">
+          <label htmlFor="contact" className={labelBase}>
             Contact Info
           </label>
           <input
             id="contact"
             type="text"
-            placeholder="Contact Info"
+            placeholder="+1 555 555 5555"
             {...register("contact", { required: "Contact info is required" })}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className={inputBase}
           />
-          {errors.contact && (
-            <p className="text-red-500 text-xs">{errors.contact.message}</p>
-          )}
+          {fieldError(errors.contact?.message)}
         </div>
 
         {/* Date & Time */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <label
-              htmlFor="eventDate"
-              className="block text-sm font-semibold mb-2"
-            >
+        <div className="mb-2 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="eventDate" className={labelBase}>
               Event Date
             </label>
             <input
@@ -292,61 +304,57 @@ const EventEditForm = () => {
               type="date"
               min={today}
               {...register("eventDate", { required: "Event date is required" })}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputBase}
             />
-            {errors.eventDate && (
-              <p className="text-red-500 text-xs">{errors.eventDate.message}</p>
-            )}
+            {fieldError(errors.eventDate?.message)}
           </div>
 
-          <div className="flex-1">
-            <label
-              htmlFor="eventTime"
-              className="block text-sm font-semibold mb-2"
-            >
+          <div>
+            <label htmlFor="eventTime" className={labelBase}>
               Event Time
             </label>
             <input
               id="eventTime"
               type="time"
               {...register("eventTime", { required: "Event time is required" })}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputBase}
             />
-            {errors.eventTime && (
-              <p className="text-red-500 text-xs">{errors.eventTime.message}</p>
-            )}
+            {fieldError(errors.eventTime?.message)}
           </div>
         </div>
 
-        {/* Ticket Option */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">
-            Ticket Option
-          </label>
-          <select
-            {...register("ticketOption", {
-              required: "Please select an option",
-            })}
-            className="w-full p-2 border border-gray-300 rounded-md"
-          >
-            <option value="">-- Select --</option>
-            <option value="free">Free Entry</option>
-            <option value="paid">Paid Ticket</option>
-          </select>
-          {errors.ticketOption && (
-            <p className="text-red-500 text-xs">
-              {errors.ticketOption.message}
-            </p>
-          )}
+        {/* Segmented: Ticket Option */}
+        <div className="mt-4">
+          <label className={labelBase}>Ticket Option</label>
+          <div className="inline-grid grid-cols-2 rounded-2xl border border-gray-200 bg-white p-1">
+            {[
+              { id: "free", label: "Free Entry" },
+              { id: "paid", label: "Paid Ticket" },
+            ].map(({ id: val, label }) => (
+              <button
+                type="button"
+                key={val}
+                onClick={() =>
+                  setValue("ticketOption", val, { shouldValidate: true })
+                }
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  watch("ticketOption") === val
+                    ? "bg-[var(--accent,#2563EB)] text-white"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                style={{ ["--accent"]: ACCENT }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {fieldError(errors.ticketOption?.message)}
         </div>
 
-        {/* Ticket Cost */}
+        {/* Ticket Cost (Paid only) */}
         {ticketOption === "paid" && (
-          <div>
-            <label
-              htmlFor="ticketCost"
-              className="block text-sm font-semibold mb-2"
-            >
+          <div className="mt-4">
+            <label htmlFor="ticketCost" className={labelBase}>
               Ticket Cost ($)
             </label>
             <input
@@ -358,22 +366,15 @@ const EventEditForm = () => {
                 required: "Ticket cost is required for paid events",
                 min: { value: 0, message: "Cost cannot be negative" },
               })}
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className={inputBase}
             />
-            {errors.ticketCost && (
-              <p className="text-red-500 text-xs">
-                {errors.ticketCost.message}
-              </p>
-            )}
+            {fieldError(errors.ticketCost?.message)}
           </div>
         )}
 
         {/* Ticket Link */}
-        <div>
-          <label
-            htmlFor="ticketLink"
-            className="block text-sm font-semibold mb-2"
-          >
+        <div className="mt-4">
+          <label htmlFor="ticketLink" className={labelBase}>
             Ticket / Registration Link (optional)
           </label>
           <input
@@ -381,27 +382,33 @@ const EventEditForm = () => {
             type="url"
             placeholder="https://eventbrite.com/your-event"
             {...register("ticketLink")}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className={inputBase}
           />
         </div>
 
         {/* Image Upload */}
-        <ImageUploader
-          selectedFiles={selectedFiles}
-          setSelectedFiles={setSelectedFiles}
-          imagePreview={imagePreview}
-          setImagePreview={setImagePreview}
-          existingImages={existingImages}
-          setExistingImages={setExistingImages}
-        />
+        <div className="mt-6">
+          <ImageUploader
+            selectedFiles={selectedFiles}
+            setSelectedFiles={setSelectedFiles}
+            imagePreview={imagePreview}
+            setImagePreview={setImagePreview}
+            existingImages={existingImages}
+            setExistingImages={setExistingImages}
+          />
+        </div>
 
-        <button
-          type="submit"
-          className="w-full py-4 mt-4 text-white font-semibold rounded-md bg-[rgba(212,17,56,1)] hover:bg-[rgba(212,17,56,0.8)] transition cursor-pointer"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Updating Event..." : "Update Event"}
-        </button>
+        {/* Submit */}
+        <div className="mt-6">
+          <button
+            type="submit"
+            className="w-full rounded-full bg-[var(--accent,#2563EB)] px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            style={{ ["--accent"]: ACCENT }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Updating Event…" : "Update Event"}
+          </button>
+        </div>
       </form>
 
       {/* Success Modal */}

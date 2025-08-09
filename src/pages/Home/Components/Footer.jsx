@@ -9,6 +9,7 @@ import {
   Globe,
   ArrowUpRight,
 } from "lucide-react";
+import logo from "../../../assets/img/logo-2d.png";
 
 const ACCENT = "#CD4A3D";
 
@@ -33,7 +34,7 @@ const Footer = () => {
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-4 px-4 py-6 sm:grid-cols-3">
           <div className="flex items-center gap-3">
             <img
-              src="/img/logo.png"
+              src={logo}
               alt="HamroNYC logo"
               className="h-10 w-10 rounded-2xl object-contain ring-1 ring-gray-100"
             />
