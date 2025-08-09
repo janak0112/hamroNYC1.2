@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Mail,
   CheckCircle2,
@@ -14,6 +14,11 @@ import {
 import authService from "../../appwrite/auth";
 import listingService from "../../appwrite/config";
 import conf from "../../conf/conf";
+
+import { Query } from 'appwrite';  // Add this import
+import { DataContext } from "../../context/DataContext";
+import { useParams } from "react-router";
+
 
 const accent = "#CD4A3D";
 
@@ -92,43 +97,83 @@ const initials = (name = "") =>
     .join("");
 
 const MyProfile = () => {
+  const { jobs, rooms, market, events, loading, error, authUser } =
+  useContext(DataContext);
+  
   const [user, setUser] = useState(null);
   const [postCount, setPostCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
+
+  const { slug } = useParams(); // e.g. "jobs" if you deep-link to a section
+  const loggedInUserId = authUser; // assuming this is already the user id
+
+  
+  console.log("a",loggedInUserId)
+
+  const [filtered, setFiltered] = useState({
+    jobs: [],
+    rooms: [],
+    market: [],
+    events: [],
+  });
+  // safer postedBy parsing
+  const byUser = (list, userId) =>
+    (list || []).filter((post) => {
+      try {
+        const pb =
+          typeof post.postedBy === "string"
+            ? JSON.parse(post.postedBy)
+            : post.postedBy;
+            return pb?.id === userId;
+      } catch {
+        return false;
+      }
+    });
+  useEffect(() => {
+    if (!loading && loggedInUserId) {
+      setFiltered({
+        jobs: byUser(jobs, loggedInUserId),
+        rooms: byUser(rooms, loggedInUserId),
+        market: byUser(market, loggedInUserId),
+        events: byUser(events, loggedInUserId),
+      });
+    }
+  }, [slug, jobs, rooms, market, events, loggedInUserId, loading]);
+  
+  const counts = useMemo(
+    () => ({
+      jobs: filtered.jobs.length,
+      rooms: filtered.rooms.length,
+      market: filtered.market.length,
+      events: filtered.events.length,
+      total:
+      filtered.jobs.length +
+      filtered.rooms.length +
+      filtered.market.length +
+      filtered.events.length,
+  }),
+  [filtered]
+  );
+console.log(counts)
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const currentUser = await authService.getCurrentUser();
+        console.log(currentUser)
         setUser(currentUser);
-
-        if (currentUser) {
-          let totalPosts = 0;
-          const collections = [
-            conf.appWriteCollectionIdRooms,
-            conf.appWriteCollectionIdJobs,
-            conf.appWriteCollectionIdMarket,
-            conf.appWriteCollectionIdEvents,
-          ];
-          // Count posts across all collections
-          for (const collectionId of collections) {
-            const response = await listingService.getListingsByUser(
-              currentUser.$id,
-              collectionId
-            );
-            totalPosts += response.length;
-          }
-          setPostCount(totalPosts);
-        }
       } catch (error) {
         console.error("Error loading profile:", error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchUserData();
   }, []);
+  
+
+  // console.log("postCount",postCount)
 
   if (loading) return <Skeleton />;
   if (!user)
@@ -206,7 +251,7 @@ const MyProfile = () => {
             value={user.status ? "Active" : "Inactive"}
             icon={Shield}
           />
-          <Stat label="Number of Posts" value={postCount} icon={IdCard} />
+          <Stat label="Number of Posts" value={counts.total} icon={IdCard} />
           <Stat
             label="Joined On"
             value={new Date(user.registration).toLocaleDateString()}
@@ -294,7 +339,7 @@ const MyProfile = () => {
 
         <Section title="Your Activity">
           <Row icon={IdCard} label="Total Posts">
-            {postCount}
+            {counts.total}
           </Row>
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-600">
             Tip: Verified phone numbers help your listings surface more and

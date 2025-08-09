@@ -20,6 +20,7 @@ const MyPosts = () => {
     events: [],
   });
 
+  
   // safer postedBy parsing
   const byUser = (list, userId) =>
     (list || []).filter((post) => {
@@ -28,39 +29,39 @@ const MyPosts = () => {
           typeof post.postedBy === "string"
             ? JSON.parse(post.postedBy)
             : post.postedBy;
-        return pb?.id === userId;
+            return pb?.id === userId;
       } catch {
         return false;
       }
     });
-
-  useEffect(() => {
-    if (!loading && loggedInUserId) {
-      setFiltered({
-        jobs: byUser(jobs, loggedInUserId),
-        rooms: byUser(rooms, loggedInUserId),
-        market: byUser(market, loggedInUserId),
-        events: byUser(events, loggedInUserId),
-      });
-    }
-  }, [slug, jobs, rooms, market, events, loggedInUserId, loading]);
-
-  const counts = useMemo(
-    () => ({
-      jobs: filtered.jobs.length,
-      rooms: filtered.rooms.length,
-      market: filtered.market.length,
-      events: filtered.events.length,
-      total:
+    
+    useEffect(() => {
+      if (!loading && loggedInUserId) {
+        setFiltered({
+          jobs: byUser(jobs, loggedInUserId),
+          rooms: byUser(rooms, loggedInUserId),
+          market: byUser(market, loggedInUserId),
+          events: byUser(events, loggedInUserId),
+        });
+      }
+    }, [slug, jobs, rooms, market, events, loggedInUserId, loading]);
+    
+    const counts = useMemo(
+      () => ({
+        jobs: filtered.jobs.length,
+        rooms: filtered.rooms.length,
+        market: filtered.market.length,
+        events: filtered.events.length,
+        total:
         filtered.jobs.length +
         filtered.rooms.length +
         filtered.market.length +
         filtered.events.length,
     }),
     [filtered]
-  );
-
-  if (!loggedInUserId && !loading) {
+    );
+    
+    if (!loggedInUserId && !loading) {
     return (
       <EmptyState
         title="You're not signed in"

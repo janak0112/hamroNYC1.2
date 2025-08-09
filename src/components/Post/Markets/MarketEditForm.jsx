@@ -1,315 +1,343 @@
+// src/components/Forms/Market/MarketEditForm.jsx
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
-import authService from "../../../appwrite/auth";
+import { checkUserLoggedIn } from "../../../utils/authUtils";
 import { uploadImages } from "../../../utils/uploadFile";
 import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import { createDocumentWithToast } from "../../../utils/documentUtils";
+import { Tag, DollarSign, MapPin, Phone, FileText, Package } from "lucide-react";
 
 const ACCENT = "#CD4A3D";
+
+/* tiny UI helpers (same as MarketPostForm) */
+const Label = ({ htmlFor, children, required }) => (
+  <label htmlFor={htmlFor} className="mb-1 block text-sm font-semibold text-gray-800">
+    {children} {required && <span className="text-red-500">*</span>}
+  </label>
+);
+
+const Input = ({ error, className = "", ...rest }) => (
+  <input
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
+  />
+);
+
+const Textarea = ({ error, className = "", ...rest }) => (
+  <textarea
+    {...rest}
+    rows={5}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
+  />
+);
+
+const Select = ({ error, className = "", children, ...rest }) => (
+  <select
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
+  >
+    {children}
+  </select>
+);
+
+const FieldError = ({ message }) =>
+  message ? <p className="mt-1 text-xs text-red-600">{message}</p> : null;
 
 const MarketEditForm = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
-    setValue,
-    watch,
+    reset,
   } = useForm();
 
   const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
-  const [marketItem, setMarketItem] = useState(null);
   const [imagePreview, setImagePreview] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const condition = watch("condition");
-
-  // Auth check
+  /* auth (same pattern as post form) */
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        if (currentUser) {
-          setUser({ id: currentUser.$id, name: currentUser.name });
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("User check failed:", error);
-        navigate("/login");
-      }
-    };
-    checkUser();
+    checkUserLoggedIn({ navigate }).then((u) => {
+      if (u) setUser({ id: u.$id, name: u.name });
+    });
   }, [navigate]);
 
-  // Fetch existing market data
+  /* fetch listing + hydrate form like post form fields */
   useEffect(() => {
-    const fetchMarketItem = async () => {
+    const fetchItem = async () => {
       try {
-        const item = await listingService.getDocument(
-          conf.appWriteCollectionIdMarket,
-          id
-        );
-        setMarketItem(item);
+        const item = await listingService.getDocument(conf.appWriteCollectionIdMarket, id);
 
-        if (item) {
-          reset({
-            title: item.title,
-            description: item.description,
-            price: item.price,
-            location: item.location,
-            contact: item.contact,
-            condition: item.condition || "used",
-          });
+        reset({
+          title: item.title ?? "",
+          description: item.description ?? "",
+          price: typeof item.price === "number" ? item.price : parseInt(item.price || 0, 10),
+          location: item.location ?? "",
+          contact: item.contact ?? "",
+          condition: item.condition || "used",
+        });
 
-          if (item.imageIds?.length > 0) {
-            const urls = item.imageIds.map((fileId) => ({
-              id: fileId,
-              preview: getFilePreview(fileId),
-            }));
-            setExistingImages(urls);
-          }
+        if (item.imageIds?.length) {
+          const urls = item.imageIds.map((fileId) => ({
+            id: fileId,
+            preview: getFilePreview(fileId),
+          }));
+          setExistingImages(urls);
         }
-      } catch (error) {
-        console.error("Error fetching market item:", error);
-        alert("Failed to load market listing.");
+      } catch (err) {
+        console.error("Error fetching market item:", err);
       }
     };
 
-    if (id) fetchMarketItem();
+    if (id) fetchItem();
   }, [id, reset]);
 
-  // Submit handler
   const onSubmit = async (data) => {
-    if (!user) {
-      alert("Please log in to update a listing.");
-      return;
-    }
+    if (!user?.id) return;
 
     setIsSubmitting(true);
     try {
-      let uploadedImageIds = [];
-      if (selectedFiles.length > 0) {
-        uploadedImageIds = await uploadImages(selectedFiles);
-      }
+      const uploadedImageIds = selectedFiles.length ? await uploadImages(selectedFiles) : [];
 
       const marketData = {
-        title: data.title,
-        description: data.description,
+        title: data.title?.trim(),
+        description: data.description?.trim(),
         type: "market",
-        price: parseInt(data.price, 10),
-        location: data.location,
-        contact: data.contact,
+        price: data.price ? parseInt(data.price, 10) : 0,
+        location: data.location?.trim(),
+        contact: data.contact?.trim(),
         condition: data.condition,
         imageIds: [...existingImages.map((img) => img.id), ...uploadedImageIds],
         postedBy: JSON.stringify(user),
         publish: true,
       };
 
-      await listingService.updateDocument(
+      createDocumentWithToast(
+        marketData,
         conf.appWriteCollectionIdMarket,
-        id,
-        marketData
+        navigate
       );
 
+      setSelectedFiles([]);
       navigate(`/market/${id}`);
     } catch (error) {
-      console.error("Failed to update listing:", error);
-      alert("Error: Could not update market listing.");
+      console.error("Failed to update market listing:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // UI helpers
-  const inputBase =
-    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10";
-  const labelBase = "mb-1 block text-sm font-semibold text-gray-800";
-  const fieldError = (msg) =>
-    msg ? <p className="mt-1 text-xs text-red-600">{msg}</p> : null;
-
   return (
-    <div className="mx-auto max-w-3xl px-6 py-14">
-      {/* Header Card */}
+    <div className="mx-auto max-w-5xl px-4 py-12">
+      {/* Hero / Header — mirrors MarketPostForm */}
       <div
-        className="overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#eef3ff] to-white p-6 sm:p-8"
-        style={{
-          boxShadow:
-            "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)",
-        }}
+        className="relative overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#fff6f5] to-white"
+        style={{ boxShadow: "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)" }}
       >
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-          Edit{" "}
-          <span
-            className="text-[var(--accent,#2563EB)]"
-            style={{ ["--accent"]: ACCENT }}
-          >
-            Market
-          </span>{" "}
-          Listing
-        </h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Update item details, condition, and images.
-        </p>
-
-        {/* Segmented: Condition */}
-        <div className="mt-5">
-          <label className={labelBase}>Condition</label>
-          <div className="inline-grid grid-cols-3 rounded-2xl border border-gray-200 bg-white p-1">
-            {[
-              { id: "new", label: "New" },
-              { id: "used", label: "Used" },
-              { id: "refurbished", label: "Refurbished" },
-            ].map(({ id: val, label }) => (
-              <button
-                type="button"
-                key={val}
-                onClick={() =>
-                  setValue("condition", val, { shouldValidate: true })
-                }
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                  condition === val
-                    ? "bg-[var(--accent,#2563EB)] text-white"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                style={{ ["--accent"]: ACCENT }}
+        <div className="px-6 py-8 sm:px-10">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+            <div className="flex items-center gap-3">
+              <div
+                className="grid h-11 w-11 place-items-center rounded-xl ring-1 ring-[var(--accent,#CD4A3D)]/20"
+                style={{ background: "rgba(205,74,61,.08)", ["--accent"]: ACCENT }}
               >
-                {label}
-              </button>
-            ))}
+                <Tag className="h-5 w-5 text-[var(--accent,#CD4A3D)]" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Edit Market Listing</h1>
+                <p className="mt-1 text-sm text-gray-600">Keep details clear—good photos and fair pricing sell faster.</p>
+              </div>
+            </div>
+
+            <div
+              className="rounded-xl px-3 py-1 text-xs font-semibold"
+              style={{ background: "rgba(205,74,61,.1)", color: ACCENT, border: "1px solid rgba(205,74,61,.2)" }}
+            >
+              Market
+            </div>
           </div>
-          {fieldError(errors.condition?.message)}
+
+          {/* Helper strip */}
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <FileText className="h-4 w-4" /> Details
+              </div>
+              Clear title and concise description sell faster.
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <DollarSign className="h-4 w-4" /> Price
+              </div>
+              Set a fair price; add condition for trust.
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <Phone className="h-4 w-4" /> Contact
+              </div>
+              Provide a phone or messaging contact to close deals.
+            </div>
+          </div>
+        </div>
+
+        {/* Form card */}
+        <div className="border-t border-gray-100 bg-white/70 px-6 py-8 sm:px-10">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basics */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <Label htmlFor="title" required>Title</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder="e.g., iPhone 13 Pro, Nikon D3500, Sofa set"
+                  {...register("title", {
+                    required: "Title is required",
+                    minLength: { value: 3, message: "At least 3 characters" },
+                    maxLength: { value: 120, message: "Max 120 characters" },
+                  })}
+                  error={!!errors.title}
+                />
+                <FieldError message={errors.title?.message} />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="description" required>Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Add key details: condition, age, included accessories, pickup/delivery…"
+                  {...register("description", {
+                    required: "Description is required",
+                    minLength: { value: 10, message: "At least 10 characters" },
+                  })}
+                  error={!!errors.description}
+                />
+                <FieldError message={errors.description?.message} />
+              </div>
+            </section>
+
+            {/* Price & Condition */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="price" required>Price (USD)</Label>
+                <div className="relative">
+                  <DollarSign className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="e.g., 150"
+                    className="pl-9"
+                    {...register("price", {
+                      required: "Price is required",
+                      min: { value: 0, message: "Price cannot be negative" },
+                    })}
+                    error={!!errors.price}
+                  />
+                </div>
+                <FieldError message={errors.price?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="condition" required>Condition</Label>
+                <Select
+                  id="condition"
+                  {...register("condition", { required: "Item condition is required" })}
+                  error={!!errors.condition}
+                >
+                  <option value="new">New</option>
+                  <option value="used">Used</option>
+                  <option value="refurbished">Refurbished</option>
+                </Select>
+                <FieldError message={errors.condition?.message} />
+              </div>
+            </section>
+
+            {/* Location & Contact */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="location" required>Location</Label>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="location"
+                    type="text"
+                    placeholder="Neighborhood / City"
+                    className="pl-9"
+                    {...register("location", {
+                      required: "Location is required",
+                      maxLength: { value: 120, message: "Max 120 characters" },
+                    })}
+                    error={!!errors.location}
+                  />
+                </div>
+                <FieldError message={errors.location?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="contact" required>Contact Info</Label>
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="contact"
+                    type="text"
+                    placeholder="Phone / WhatsApp / Messenger"
+                    className="pl-9"
+                    {...register("contact", { required: "Contact info is required" })}
+                    error={!!errors.contact}
+                  />
+                </div>
+                <FieldError message={errors.contact?.message} />
+              </div>
+            </section>
+
+            {/* Images */}
+            <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <Package className="h-4 w-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-900">Item Photos</h3>
+              </div>
+              <p className="mb-3 text-xs text-gray-500">
+                Add clear photos (front, back, any flaws). First image becomes the cover.
+              </p>
+              <ImageUploader
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                imagePreview={imagePreview}
+                setImagePreview={setImagePreview}
+                existingImages={existingImages}
+                setExistingImages={setExistingImages}
+              />
+            </section>
+
+            {/* Submit */}
+            <div className="flex items-center justify-end">
+              <button
+                type="submit"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--accent,#CD4A3D)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto disabled:bg-gray-400"
+                style={{ ["--accent"]: ACCENT }}
+                disabled={isSubmitting || !user?.id}
+              >
+                {isSubmitting ? "Updating Listing..." : "Update Listing"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-
-      {/* Form Card */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mt-8 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm"
-        style={{
-          boxShadow:
-            "0 1px 0 rgba(16,24,40,.03), 0 8px 24px rgba(16,24,40,.06)",
-        }}
-      >
-        {/* Title */}
-        <div className="mb-4">
-          <label htmlFor="title" className={labelBase}>
-            Title
-          </label>
-          <input
-            id="title"
-            type="text"
-            placeholder="iPhone 13, gently used"
-            {...register("title", { required: "Title is required" })}
-            className={inputBase}
-          />
-          {fieldError(errors.title?.message)}
-        </div>
-
-        {/* Description */}
-        <div className="mb-4">
-          <label htmlFor="description" className={labelBase}>
-            Description
-          </label>
-          <textarea
-            id="description"
-            rows={4}
-            placeholder="Describe the item, condition, included accessories, etc."
-            {...register("description", {
-              required: "Description is required",
-            })}
-            className={`${inputBase} min-h-[110px]`}
-          />
-          {fieldError(errors.description?.message)}
-        </div>
-
-        {/* Price & Location */}
-        <div className="mb-2 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="price" className={labelBase}>
-              Price
-            </label>
-            <input
-              id="price"
-              type="number"
-              placeholder="350"
-              {...register("price", { required: "Price is required" })}
-              className={inputBase}
-            />
-            {fieldError(errors.price?.message)}
-          </div>
-          <div>
-            <label htmlFor="location" className={labelBase}>
-              Location
-            </label>
-            <input
-              id="location"
-              type="text"
-              placeholder="Jackson Heights, NY"
-              {...register("location", { required: "Location is required" })}
-              className={inputBase}
-            />
-            {fieldError(errors.location?.message)}
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div className="mb-4">
-          <label htmlFor="contact" className={labelBase}>
-            Contact Info
-          </label>
-          <input
-            id="contact"
-            type="text"
-            placeholder="+1 555 555 5555"
-            {...register("contact", { required: "Contact info is required" })}
-            className={inputBase}
-          />
-          {fieldError(errors.contact?.message)}
-        </div>
-
-        {/* Hidden select (kept for validation parity with segmented) */}
-        <select
-          {...register("condition", { required: "Item condition is required" })}
-          className="hidden"
-        >
-          <option value="new">New</option>
-          <option value="used">Used</option>
-          <option value="refurbished">Refurbished</option>
-        </select>
-
-        {/* Image Upload */}
-        <div className="mt-4">
-          <ImageUploader
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            imagePreview={imagePreview}
-            setImagePreview={setImagePreview}
-            existingImages={existingImages}
-            setExistingImages={setExistingImages}
-          />
-        </div>
-
-        {/* Submit */}
-        <div className="mt-6">
-          <button
-            type="submit"
-            className="w-full rounded-full bg-[var(--accent,#2563EB)] px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-            style={{ ["--accent"]: ACCENT }}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Updating Listing…" : "Update Listing"}
-          </button>
-        </div>
-      </form>
     </div>
   );
 };

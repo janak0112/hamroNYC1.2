@@ -1,15 +1,65 @@
+// src/components/Forms/Jobs/JobEditForm.jsx
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
-import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
+import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import {
+  BriefcaseBusiness,
+  Building2,
+  MapPin,
+  Phone,
+  Mail,
+  DollarSign,
+  Link2,
+} from "lucide-react";
 
 const ACCENT = "#CD4A3D";
+
+/* tiny UI helpers (same as JobPostForm) */
+const Label = ({ htmlFor, children, required }) => (
+  <label htmlFor={htmlFor} className="mb-1 block text-sm font-semibold text-gray-800">
+    {children} {required && <span className="text-red-500">*</span>}
+  </label>
+);
+
+const Input = ({ error, className = "", ...rest }) => (
+  <input
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
+  />
+);
+
+const Textarea = ({ error, className = "", ...rest }) => (
+  <textarea
+    {...rest}
+    rows={5}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
+  />
+);
+
+const Select = ({ error, className = "", children, ...rest }) => (
+  <select
+    {...rest}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
+  >
+    {children}
+  </select>
+);
+
+const FieldError = ({ message }) =>
+  message ? <p className="mt-1 text-xs text-red-600">{message}</p> : null;
 
 const JobEditForm = () => {
   const {
@@ -18,28 +68,22 @@ const JobEditForm = () => {
     formState: { errors },
     watch,
     reset,
-    setValue,
   } = useForm();
 
   const [userId, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
-  const [jobItem, setJobItem] = useState(null);
+  const [existingImages, setExistingImages] = useState([]);
 
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // watch fields
   const contactNumber = watch("contactNumber");
   const contactEmail = watch("contactEmail");
-  const salaryType = watch("salaryType");
-  const jobType = watch("jobType");
 
-  // Auth check
+  /* auth (same pattern as post form) */
   useEffect(() => {
     (async () => {
       try {
@@ -49,35 +93,30 @@ const JobEditForm = () => {
         } else {
           navigate("/login");
         }
-      } catch (e) {
-        console.error("Auth error:", e);
+      } catch {
         navigate("/login");
       }
     })();
   }, [navigate]);
 
-  // Fetch job + hydrate form
+  /* fetch job and hydrate form */
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const job = await listingService.getDocument(
-          conf.appWriteCollectionIdJobs,
-          id
-        );
-        setJobItem(job);
+        const job = await listingService.getDocument(conf.appWriteCollectionIdJobs, id);
 
         reset({
-          title: job.title,
-          description: job.description,
-          salary: job.salary,
+          title: job.title ?? "",
+          description: job.description ?? "",
+          salary: job.salary ?? "",
           salaryType: job.salaryType || "hourly",
-          location: job.location,
+          location: job.location ?? "",
           contactNumber: job.contactNumber || "",
           contactEmail: job.contactEmail || "",
-          company: job.company,
+          company: job.company ?? "",
           jobType: job.jobType || "full-time",
           jobLink: job.jobLink || "",
-          checkOnly: job.checkOnly || false,
+          checkOnly: !!job.checkOnly,
         });
 
         if (job.imageIds?.length) {
@@ -87,8 +126,8 @@ const JobEditForm = () => {
           }));
           setExistingImages(urls);
         }
-      } catch (error) {
-        console.error("Error fetching job:", error);
+      } catch (err) {
+        console.error("Error fetching job:", err);
         setErrorMessage("Failed to load job data.");
       }
     };
@@ -96,9 +135,8 @@ const JobEditForm = () => {
     if (id) fetchJob();
   }, [id, reset]);
 
-  // Submit
   const onSubmit = async (data) => {
-    if (!userId) {
+    if (!userId?.id) {
       setErrorMessage("Please log in to update a job listing.");
       return;
     }
@@ -109,39 +147,29 @@ const JobEditForm = () => {
 
     setIsSubmitting(true);
     try {
-      let uploadedImageIds = [];
-      if (selectedFiles.length > 0) {
-        uploadedImageIds = await uploadImages(selectedFiles);
-      }
+      const uploadedImageIds = selectedFiles.length ? await uploadImages(selectedFiles) : [];
 
       const jobData = {
-        type: "job",
-        title: data.title,
-        description: data.description,
-        salary: data.salary,
+        title: data.title?.trim(),
+        description: data.description?.trim(),
+        salary: data.salary ? String(data.salary) : null, // keep as string like post form
         salaryType: data.salaryType,
-        location: data.location,
-        contactNumber: data.contactNumber || null,
-        contactEmail: data.contactEmail || null,
-        company: data.company,
+        location: data.location?.trim(),
+        contactNumber: data.contactNumber?.trim() || null,
+        contactEmail: data.contactEmail?.trim() || null,
+        company: data.company?.trim(),
         jobType: data.jobType,
         jobLink: data.jobLink || null,
-        checkOnly: data.checkOnly || false,
+        checkOnly: !!data.checkOnly,
         imageIds: [...existingImages.map((img) => img.id), ...uploadedImageIds],
-        postedBy: JSON.stringify(userId).slice(0, 999),
+        postedBy: JSON.stringify(userId),
         publish: true,
       };
 
-      await listingService.updateDocument(
-        conf.appWriteCollectionIdJobs,
-        id,
-        jobData
-      );
+      createDocumentWithToast(jobData, conf.appWriteCollectionIdJobs, navigate);
 
       setSelectedFiles([]);
-      setShowSuccessModal(true);
       setTimeout(() => {
-        setShowSuccessModal(false);
         navigate(`/jobs/${id}`);
       }, 1200);
     } catch (error) {
@@ -152,313 +180,284 @@ const JobEditForm = () => {
     }
   };
 
-  // UI helpers
-  const inputBase =
-    "w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10";
-  const labelBase = "mb-1 block text-sm font-semibold text-gray-800";
-  const fieldError = (msg) =>
-    msg ? <p className="mt-1 text-xs text-red-600">{msg}</p> : null;
-
   return (
-    <div className="mx-auto max-w-3xl px-6 py-14">
-      {/* Header Card */}
+    <div className="mx-auto max-w-5xl px-4 py-12">
+      {/* Hero / Header — matches JobPostForm */}
       <div
-        className="overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#eef3ff] to-white p-6 sm:p-8"
-        style={{
-          boxShadow:
-            "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)",
-        }}
+        className="relative overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br from-[#fff6f5] to-white"
+        style={{ boxShadow: "0 1px 0 rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.08)" }}
       >
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-          Edit{" "}
-          <span
-            className="text-[var(--accent,#2563EB)]"
-            style={{ ["--accent"]: ACCENT }}
-          >
-            Job
-          </span>{" "}
-          Listing
-        </h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Update details, adjust salary type, and manage images.
-        </p>
-
-        {/* Segmented: Job Type */}
-        <div className="mt-5">
-          <label className={labelBase}>Job Type</label>
-          <div className="inline-grid grid-cols-3 rounded-2xl border border-gray-200 bg-white p-1">
-            {[
-              { id: "full-time", label: "Full-Time" },
-              { id: "part-time", label: "Part-Time" },
-              { id: "temporary", label: "Temporary" },
-            ].map(({ id: val, label }) => (
-              <button
-                type="button"
-                key={val}
-                onClick={() =>
-                  setValue("jobType", val, { shouldValidate: true })
-                }
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                  jobType === val
-                    ? "bg-[var(--accent,#2563EB)] text-white"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                style={{ ["--accent"]: ACCENT }}
+        <div className="px-6 py-8 sm:px-10">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+            <div className="flex items-center gap-3">
+              <div
+                className="grid h-11 w-11 place-items-center rounded-xl ring-1 ring-[var(--accent,#CD4A3D)]/20"
+                style={{ background: "rgba(205,74,61,.08)", ["--accent"]: ACCENT }}
               >
-                {label}
-              </button>
-            ))}
-          </div>
-          {fieldError(errors.jobType?.message)}
-        </div>
-      </div>
+                <BriefcaseBusiness className="h-5 w-5 text-[var(--accent,#CD4A3D)]" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Edit Job Listing</h1>
+                <p className="mt-1 text-sm text-gray-600">Keep details accurate for better matches.</p>
+              </div>
+            </div>
 
-      {/* Form Card */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mt-8 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm"
-        style={{
-          boxShadow:
-            "0 1px 0 rgba(16,24,40,.03), 0 8px 24px rgba(16,24,40,.06)",
-        }}
-      >
-        {/* Title */}
-        <div className="mb-4">
-          <label htmlFor="title" className={labelBase}>
-            Job Title
-          </label>
-          <input
-            id="title"
-            type="text"
-            placeholder="Barista / Cashier"
-            {...register("title", {
-              required: "Title is required",
-              maxLength: 100,
-            })}
-            className={inputBase}
-          />
-          {fieldError(errors.title?.message)}
-        </div>
-
-        {/* Company */}
-        <div className="mb-4">
-          <label htmlFor="company" className={labelBase}>
-            Company
-          </label>
-          <input
-            id="company"
-            type="text"
-            placeholder="Company Name"
-            {...register("company", {
-              required: "Company is required",
-              maxLength: 100,
-            })}
-            className={inputBase}
-          />
-          {fieldError(errors.company?.message)}
-        </div>
-
-        {/* Description */}
-        <div className="mb-4">
-          <label htmlFor="description" className={labelBase}>
-            Description
-          </label>
-          <textarea
-            id="description"
-            rows={4}
-            placeholder="Describe the job role"
-            {...register("description", {
-              required: "Description is required",
-              maxLength: 500,
-            })}
-            className={`${inputBase} min-h-[110px]`}
-          />
-          {fieldError(errors.description?.message)}
-        </div>
-
-        {/* Salary + Salary Type (segmented) */}
-        <div className="mb-2 grid gap-4 sm:grid-cols-3">
-          <div className="sm:col-span-2">
-            <label htmlFor="salary" className={labelBase}>
-              Salary
-            </label>
-            <input
-              id="salary"
-              type="number"
-              step="0.01"
-              placeholder="Enter salary"
-              {...register("salary", {
-                required: "Salary is required",
-                min: 0,
-              })}
-              className={inputBase}
-            />
-            {fieldError(errors.salary?.message)}
+            <div
+              className="rounded-xl px-3 py-1 text-xs font-semibold"
+              style={{ background: "rgba(205,74,61,.1)", color: ACCENT, border: "1px solid rgba(205,74,61,.2)" }}
+            >
+              Jobs
+            </div>
           </div>
 
-          <div>
-            <label className={labelBase}>Salary Type</label>
-            <div className="inline-grid grid-cols-3 rounded-2xl border border-gray-200 bg-white p-1">
-              {["hourly", "monthly", "yearly"].map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() =>
-                    setValue("salaryType", opt, { shouldValidate: true })
-                  }
-                  className={`rounded-xl px-3 py-2 text-sm font-semibold transition capitalize ${
-                    salaryType === opt
-                      ? "bg-[var(--accent,#2563EB)] text-white"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                  style={{ ["--accent"]: ACCENT }}
-                >
-                  {opt}
-                </button>
-              ))}
+          {/* Helper strip */}
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <Building2 className="h-4 w-4" /> Company
+              </div>
+              Use a clear role title and a short, scannable description.
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <DollarSign className="h-4 w-4" /> Pay
+              </div>
+              Add salary + type (hourly, monthly, yearly) for more trust.
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm">
+              <div className="mb-1 flex items-center gap-2 font-semibold">
+                <Phone className="h-4 w-4" /> Contact
+              </div>
+              Provide phone or email—at least one is required.
             </div>
           </div>
         </div>
 
-        {/* Location */}
-        <div className="mb-4">
-          <label htmlFor="location" className={labelBase}>
-            Location
-          </label>
-          <input
-            id="location"
-            type="text"
-            placeholder="Jackson Heights, NY"
-            {...register("location", {
-              required: "Location is required",
-              maxLength: 200,
-            })}
-            className={inputBase}
-          />
-          {fieldError(errors.location?.message)}
+        {/* Form card */}
+        <div className="border-t border-gray-100 bg-white/70 px-6 py-8 sm:px-10">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Basics */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <Label htmlFor="title" required>Job Title</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder="e.g., Barista / Retail Associate"
+                  {...register("title", {
+                    required: "Title is required",
+                    maxLength: { value: 100, message: "Max 100 characters" },
+                    minLength: { value: 3, message: "At least 3 characters" },
+                  })}
+                  error={!!errors.title}
+                />
+                <FieldError message={errors.title?.message} />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="description" required>Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe responsibilities, shifts, requirements, perks…"
+                  {...register("description", {
+                    required: "Description is required",
+                    maxLength: { value: 500, message: "Max 500 characters" },
+                    minLength: { value: 10, message: "At least 10 characters" },
+                  })}
+                  error={!!errors.description}
+                />
+                <FieldError message={errors.description?.message} />
+              </div>
+            </section>
+
+            {/* Pay & Location */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="salary" required>Salary</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="salary"
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g., 18.50"
+                    {...register("salary", {
+                      required: "Salary is required",
+                      min: { value: 0, message: "Salary cannot be negative" },
+                    })}
+                    error={!!errors.salary}
+                    className="w-2/3"
+                  />
+                  <Select id="salaryType" {...register("salaryType")} className="w-1/3">
+                    <option value="hourly">Hourly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </Select>
+                </div>
+                <FieldError message={errors.salary?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="location" required>Location</Label>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="location"
+                    type="text"
+                    placeholder="Neighborhood / City"
+                    className="pl-9"
+                    {...register("location", {
+                      required: "Location is required",
+                      maxLength: { value: 200, message: "Max 200 characters" },
+                    })}
+                    error={!!errors.location}
+                  />
+                </div>
+                <FieldError message={errors.location?.message} />
+              </div>
+            </section>
+
+            {/* Contact & Type */}
+            <section className="grid gap-6 md:grid-cols-2">
+              <div>
+                <Label htmlFor="contactNumber">Contact Number</Label>
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="contactNumber"
+                    type="tel"
+                    placeholder="+1 212 555 1234"
+                    className="pl-9"
+                    {...register("contactNumber", {
+                      pattern: {
+                        value: /^[0-9+\-\s()]+$/,
+                        message: "Invalid contact number",
+                      },
+                    })}
+                    error={!!errors.contactNumber}
+                  />
+                </div>
+                <FieldError message={errors.contactNumber?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="contactEmail">Contact Email</Label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="contactEmail"
+                    type="email"
+                    placeholder="hr@company.com"
+                    className="pl-9"
+                    {...register("contactEmail", {
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: "Invalid email address",
+                      },
+                    })}
+                    error={!!errors.contactEmail}
+                  />
+                </div>
+                <FieldError message={errors.contactEmail?.message} />
+              </div>
+
+              {!contactNumber && !contactEmail && (
+                <div className="md:col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  ⚠️ Please provide at least a contact number or an email.
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="jobType" required>Job Type</Label>
+                <Select id="jobType" {...register("jobType", { required: "Job type is required" })} error={!!errors.jobType}>
+                  <option value="full-time">Full-Time</option>
+                  <option value="part-time">Part-Time</option>
+                  <option value="temporary">Temporary</option>
+                </Select>
+                <FieldError message={errors.jobType?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="company" required>Company</Label>
+                <div className="relative">
+                  <Building2 className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="company"
+                    type="text"
+                    placeholder="Company name"
+                    className="pl-9"
+                    {...register("company", {
+                      required: "Company is required",
+                      maxLength: { value: 100, message: "Max 100 characters" },
+                    })}
+                    error={!!errors.company}
+                  />
+                </div>
+                <FieldError message={errors.company?.message} />
+              </div>
+            </section>
+
+            {/* Link */}
+            <section className="grid gap-6">
+              <div>
+                <Label htmlFor="jobLink">Job Application Link (optional)</Label>
+                <div className="relative">
+                  <Link2 className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="jobLink"
+                    type="url"
+                    placeholder="https://apply-link.com"
+                    className="pl-9"
+                    {...register("jobLink", {
+                      pattern: {
+                        value:
+                          /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                        message: "Please enter a valid URL",
+                      },
+                    })}
+                    error={!!errors.jobLink}
+                  />
+                </div>
+                <FieldError message={errors.jobLink?.message} />
+              </div>
+            </section>
+
+            {/* Images */}
+            <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-900">Company / Role Images</h3>
+              </div>
+              <p className="mb-3 text-xs text-gray-500">Add a logo or workplace photo. First image becomes the cover.</p>
+              <ImageUploader
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                imagePreview={imagePreview}
+                setImagePreview={setImagePreview}
+                existingImages={existingImages}
+                setExistingImages={setExistingImages}
+              />
+            </section>
+
+            {/* Remote Only */}
+            <div className="flex items-center gap-2">
+              <input id="checkOnly" type="checkbox" {...register("checkOnly")} className="h-4 w-4" />
+              <label htmlFor="checkOnly" className="text-sm font-semibold">Remote Only</label>
+            </div>
+
+            {/* Submit */}
+            <div className="flex items-center justify-end">
+              <button
+                type="submit"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--accent,#CD4A3D)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto disabled:bg-gray-400"
+                style={{ ["--accent"]: ACCENT }}
+                disabled={isSubmitting || !userId?.id}
+              >
+                {isSubmitting ? "Updating Listing..." : "Update Listing"}
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* Contact */}
-        <div className="mb-2 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="contactNumber" className={labelBase}>
-              Contact Number
-            </label>
-            <input
-              id="contactNumber"
-              type="tel"
-              placeholder="+1 555 555 5555"
-              {...register("contactNumber", {
-                pattern: {
-                  value: /^[0-9+\-\s()]+$/,
-                  message: "Invalid contact number",
-                },
-              })}
-              className={inputBase}
-            />
-            {fieldError(errors.contactNumber?.message)}
-          </div>
-          <div>
-            <label htmlFor="contactEmail" className={labelBase}>
-              Contact Email
-            </label>
-            <input
-              id="contactEmail"
-              type="email"
-              placeholder="you@example.com"
-              {...register("contactEmail", {
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Invalid email address",
-                },
-              })}
-              className={inputBase}
-            />
-            {fieldError(errors.contactEmail?.message)}
-          </div>
-        </div>
-
-        {/* Either phone or email hint */}
-        {!contactNumber && !contactEmail && (
-          <p className="mb-2 text-xs text-red-600">
-            Please provide at least a contact number or an email.
-          </p>
-        )}
-
-        {/* Job Link */}
-        <div className="mb-4">
-          <label htmlFor="jobLink" className={labelBase}>
-            Job Application Link (optional)
-          </label>
-          <input
-            id="jobLink"
-            type="url"
-            placeholder="https://apply-link.com"
-            {...register("jobLink", {
-              pattern: {
-                value:
-                  /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
-                message: "Please enter a valid URL",
-              },
-            })}
-            className={inputBase}
-          />
-          {fieldError(errors.jobLink?.message)}
-        </div>
-
-        {/* Image Uploader */}
-        <div className="mt-4">
-          <ImageUploader
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            imagePreview={imagePreview}
-            setImagePreview={setImagePreview}
-            existingImages={existingImages}
-            setExistingImages={setExistingImages}
-          />
-        </div>
-
-        {/* Remote Only */}
-        <div className="mt-5 flex items-center gap-2">
-          <input
-            id="checkOnly"
-            type="checkbox"
-            {...register("checkOnly")}
-            className="h-4 w-4"
-          />
-          <label htmlFor="checkOnly" className="text-sm font-semibold">
-            Remote Only
-          </label>
-        </div>
-
-        {/* Submit */}
-        <div className="mt-6">
-          <button
-            type="submit"
-            className="w-full rounded-full bg-[var(--accent,#2563EB)] px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-            style={{ ["--accent"]: ACCENT }}
-            disabled={isSubmitting || !userId}
-          >
-            {isSubmitting ? "Updating Listing…" : "Update Listing"}
-          </button>
-        </div>
-      </form>
-
-      {/* Success */}
-      <Modal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Job Listing Updated!"
-        message="Your job has been successfully updated. Redirecting…"
-      />
-
-      {/* Error */}
-      <Modal
-        isOpen={!!errorMessage}
-        onClose={() => setErrorMessage("")}
-        title="Error"
-        message={errorMessage}
-      />
+      </div>
     </div>
   );
 };

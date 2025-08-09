@@ -133,7 +133,7 @@ const JobPostForm = () => {
       const jobData = {
         title: data.title?.trim(),
         description: data.description?.trim(),
-        salary: data.salary ? Number(data.salary) : null,
+        salary: data.salary ? String(data.salary) : null,
         salaryType: data.salaryType,
         location: data.location?.trim(),
         contactNumber: data.contactNumber?.trim() || null,

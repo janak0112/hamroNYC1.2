@@ -118,7 +118,7 @@ const EventPostForm = () => {
         eventTime: data.eventTime,
         ticketOption: data.ticketOption,
         ticketCost:
-          data.ticketOption === "paid" ? parseFloat(data.ticketCost) : null,
+          data.ticketOption === "paid" ? String(parseFloat(data.ticketCost)) : null,
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,

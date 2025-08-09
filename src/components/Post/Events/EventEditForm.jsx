@@ -4,13 +4,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
-import Modal from "../../Modals/Modal";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
-
+import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
-
-const ACCENT = "#CD4A3D";
+// import { toast } from "react-hot-toast";
 
 const EventEditForm = () => {
   const {
@@ -24,11 +22,7 @@ const EventEditForm = () => {
 
   const [postedBy, setUser] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [eventDoc, setEventDoc] = useState(null);
-
   const [existingImages, setExistingImages] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
 
@@ -39,9 +33,9 @@ const EventEditForm = () => {
   const eventMode = watch("eventMode");
   const today = new Date().toISOString().split("T")[0];
 
-  // ✅ Check logged-in user
+  // Check logged-in user
   useEffect(() => {
-    const checkUser = async () => {
+    (async () => {
       try {
         const currentUser = await authService.getCurrentUser();
         if (currentUser) {
@@ -49,15 +43,13 @@ const EventEditForm = () => {
         } else {
           navigate("/login");
         }
-      } catch (error) {
-        console.error("Error checking user:", error);
+      } catch {
         navigate("/login");
       }
-    };
-    checkUser();
+    })();
   }, [navigate]);
 
-  // ✅ Fetch event and hydrate the form
+  // Fetch event and hydrate the form
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -65,16 +57,37 @@ const EventEditForm = () => {
           conf.appWriteCollectionIdEvents,
           id
         );
-        setEventDoc(doc);
+
+        // Inline hydration (no helpers)
+        const dateVal =
+          doc?.eventDate
+            ? /^\d{4}-\d{2}-\d{2}$/.test(doc.eventDate)
+              ? doc.eventDate
+              : new Date(doc.eventDate).toISOString().split("T")[0]
+            : "";
+
+        const timeVal = (() => {
+          if (!doc?.eventTime) return "";
+          if (/^\d{2}:\d{2}$/.test(doc.eventTime)) return doc.eventTime;
+          const d = new Date(doc.eventTime);
+          if (!isNaN(d)) return d.toISOString().substring(11, 16);
+          const m = String(doc.eventTime).match(/(\d{1,2}):(\d{2})/);
+          return m ? `${m[1].padStart(2, "0")}:${m[2]}` : "";
+        })();
 
         reset({
-          ...doc,
-          eventDate: doc.eventDate
-            ? new Date(doc.eventDate).toISOString().split("T")[0]
-            : "",
-          eventTime: doc.eventTime
-            ? new Date(doc.eventTime).toISOString().substring(11, 16)
-            : "",
+          title: doc.title || "",
+          description: doc.description || "",
+          eventMode: doc.eventMode || "",
+          location: doc.eventMode === "inPerson" ? doc.location || "" : "",
+          onlineLink: doc.eventMode === "online" ? doc.onlineLink || "" : "",
+          contact: doc.contact || "",
+          eventDate: dateVal,
+          eventTime: timeVal,
+          ticketOption: doc.ticketOption || "",
+          ticketCost: doc.ticketOption === "paid" ? String(doc.ticketCost ?? "") : "",
+          ticketLink: doc.ticketLink || "",
+          imageIds: doc.imageIds || [],
         });
 
         if (doc.imageIds?.length > 0) {
@@ -85,58 +98,65 @@ const EventEditForm = () => {
           setExistingImages(urls);
         }
       } catch (error) {
-        console.error("❌ Failed to fetch event:", error);
-        setErrorMessage("Could not load event data.");
+        toast.error("Could not load event data.");
       }
     };
     if (id) fetchEvent();
   }, [id, reset]);
 
-  // ✅ Submit update
+  // Conditional clears (match your post form)
+  useEffect(() => {
+    if (eventMode !== "inPerson") setValue("location", "");
+    if (eventMode !== "online") setValue("onlineLink", "");
+  }, [eventMode, setValue]);
+
+  useEffect(() => {
+    if (ticketOption !== "paid") setValue("ticketCost", "");
+  }, [ticketOption, setValue]);
+
   const onSubmit = async (data) => {
-    if (!postedBy) {
-      setErrorMessage("Please log in to update an Event listing.");
+    if (!postedBy?.id) {
+      toast.error("Please log in to update an Event listing.");
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       let uploadedImageIds = [];
       if (selectedFiles.length > 0) {
         uploadedImageIds = await uploadImages(selectedFiles);
       }
 
+      const imageIds = Array.from(
+        new Set([...existingImages.map((img) => img.id), ...uploadedImageIds])
+      );
+
       const eventData = {
-        title: data.title,
-        description: data.description,
-        location: data.eventMode === "inPerson" ? data.location : null,
-        contact: data.contact,
-        eventDate: data.eventDate,
-        eventTime: data.eventTime,
+        title: data.title?.trim(),
+        description: data.description?.trim(),
+        location: data.eventMode === "inPerson" ? data.location?.trim() : null,
+        contact: data.contact?.trim(),
+        eventDate: data.eventDate, // input is YYYY-MM-DD
+        eventTime: data.eventTime, // input is HH:mm
         ticketOption: data.ticketOption,
-        ticketCost: data.ticketOption === "paid" ? data.ticketCost : null,
+        ticketCost:
+          data.ticketOption === "paid"
+            ? String(parseFloat(data.ticketCost))
+            : null,
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
-        onlineLink: data.eventMode === "online" ? data.onlineLink : null,
-        imageIds: [...existingImages.map((img) => img.id), ...uploadedImageIds],
+        onlineLink: data.eventMode === "online" ? data.onlineLink?.trim() : null,
+        imageIds,
         postedBy: JSON.stringify(postedBy).slice(0, 999),
       };
 
-      await listingService.updateDocument(
+      createDocumentWithToast(
+        eventData,
         conf.appWriteCollectionIdEvents,
-        id,
-        eventData
+        navigate
       );
 
-      setShowSuccessModal(true);
-      setTimeout(() => {
-        setShowSuccessModal(false);
-        navigate(`/event/${id}`);
-      }, 1200);
-    } catch (error) {
-      console.error("❌ Error updating event:", error);
-      setErrorMessage("Failed to update event.");
+      navigate(`/events/${id}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -160,13 +180,7 @@ const EventEditForm = () => {
         }}
       >
         <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-          Edit{" "}
-          <span
-            className="text-[var(--accent,#2563EB)]"
-            style={{ ["--accent"]: ACCENT }}
-          >
-            Event
-          </span>
+          Edit <span className="text-[#CD4A3D]">Event</span>
         </h2>
         <p className="mt-1 text-sm text-gray-600">
           Update details, switch between in-person and online, and manage
@@ -187,12 +201,10 @@ const EventEditForm = () => {
                 onClick={() =>
                   setValue("eventMode", val, { shouldValidate: true })
                 }
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                  watch("eventMode") === val
-                    ? "bg-[var(--accent,#2563EB)] text-white"
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${watch("eventMode") === val
+                    ? "bg-[#CD4A3D] text-white"
                     : "text-gray-700 hover:bg-gray-50"
-                }`}
-                style={{ ["--accent"]: ACCENT }}
+                  }`}
               >
                 {label}
               </button>
@@ -220,7 +232,10 @@ const EventEditForm = () => {
             id="title"
             type="text"
             placeholder="Nepal Day Celebration"
-            {...register("title", { required: "Event title is required" })}
+            {...register("title", {
+              required: "Event title is required",
+              minLength: { value: 3, message: "Title must be at least 3 characters" },
+            })}
             className={inputBase}
           />
           {fieldError(errors.title?.message)}
@@ -237,6 +252,7 @@ const EventEditForm = () => {
             placeholder="Describe the event"
             {...register("description", {
               required: "Description is required",
+              minLength: { value: 10, message: "Description must be at least 10 characters" },
             })}
             className={`${inputBase} min-h-[110px]`}
           />
@@ -271,6 +287,12 @@ const EventEditForm = () => {
               placeholder="https://zoom.us/your-link"
               {...register("onlineLink", {
                 required: "Online link is required for online events",
+                // Inline pattern (no constant)
+                pattern: {
+                  value:
+                    /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/i,
+                  message: "Please enter a valid URL",
+                },
               })}
               className={inputBase}
             />
@@ -286,7 +308,7 @@ const EventEditForm = () => {
           <input
             id="contact"
             type="text"
-            placeholder="+1 555 555 5555"
+            placeholder="Name / email / phone"
             {...register("contact", { required: "Contact info is required" })}
             className={inputBase}
           />
@@ -337,12 +359,10 @@ const EventEditForm = () => {
                 onClick={() =>
                   setValue("ticketOption", val, { shouldValidate: true })
                 }
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                  watch("ticketOption") === val
-                    ? "bg-[var(--accent,#2563EB)] text-white"
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${watch("ticketOption") === val
+                    ? "bg-[#CD4A3D] text-white"
                     : "text-gray-700 hover:bg-gray-50"
-                }`}
-                style={{ ["--accent"]: ACCENT }}
+                  }`}
               >
                 {label}
               </button>
@@ -381,9 +401,16 @@ const EventEditForm = () => {
             id="ticketLink"
             type="url"
             placeholder="https://eventbrite.com/your-event"
-            {...register("ticketLink")}
+            {...register("ticketLink", {
+              pattern: {
+                value:
+                  /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/i,
+                message: "Please enter a valid URL",
+              },
+            })}
             className={inputBase}
           />
+          {fieldError(errors.ticketLink?.message)}
         </div>
 
         {/* Image Upload */}
@@ -402,30 +429,13 @@ const EventEditForm = () => {
         <div className="mt-6">
           <button
             type="submit"
-            className="w-full rounded-full bg-[var(--accent,#2563EB)] px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-            style={{ ["--accent"]: ACCENT }}
+            className="w-full rounded-full bg-[#CD4A3D] px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Updating Event…" : "Update Event"}
           </button>
         </div>
       </form>
-
-      {/* Success Modal */}
-      <Modal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Event Updated!"
-        message="Your event has been successfully updated."
-      />
-
-      {/* Error Modal */}
-      <Modal
-        isOpen={!!errorMessage}
-        onClose={() => setErrorMessage("")}
-        title="Error"
-        message={errorMessage}
-      />
     </div>
   );
 };
