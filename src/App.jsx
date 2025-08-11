@@ -34,6 +34,11 @@ import EventEditForm from "./components/Post/Events/EventEditForm";
 import JobEditForm from "./components/Post/Jobs/JobEditForm";
 import MarketEditForm from "./components/Post/Markets/MarketEditForm";
 import RoomEditForm from "./components/Post/Rooms/RoomEditForm";
+import AdminPosts from "./pages/AdminPosts/AdminPosts";
+
+
+
+
 
 function App() {
   return (
@@ -43,6 +48,18 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
+
+            <Route
+  path="admin/posts"
+  element={
+    // remove AdminRoute wrapper if you don’t want to protect it yet
+    // <AdminRoute>
+      <AdminPosts />
+    // </AdminRoute>
+  }
+/>
+
+
               <Route path="/" element={<HomePage />} />
               <Route path="signup" element={<SignUp />} />
               <Route path="login" element={<LogIn />} />
