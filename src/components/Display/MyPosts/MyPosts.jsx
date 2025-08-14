@@ -144,6 +144,7 @@ const MyPosts = () => {
                 error={null}
                 // Keep your original deep links
                 link={`/my-posts${item.link}`}
+                showViewAll={false}
               />
             </SectionCard>
           ))}

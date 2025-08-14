@@ -3,18 +3,18 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PostCard from "./PostCard";
 
-const PostSection = ({ title, data = [], loading, error, link }) => (
+const PostSection = ({ title, data = [], loading, error, link, showViewAll = true, }) => (
   <section className="container mx-auto px-6 mb-10">
-    <div className="flex justify-between items-center mb-4">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold uppercase tracking-widest text-[#CD4A3D] mb-6">
-          {title}
-        </h2>
-      </div>
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-bold uppercase tracking-widest text-[#CD4A3D]">
+        {title}
+      </h2>
 
-      <Link to={link} className="text-[rgb(205,74,61)] hover:underline">
-        View All
-      </Link>
+      {showViewAll && link ? (
+        <Link to={link} className="text-[rgb(205,74,61)] hover:underline">
+          View All
+        </Link>
+      ) : null}
     </div>
     {loading ? (
       <p>Loading...</p>

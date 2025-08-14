@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { uploadImages } from "../../../utils/uploadFile";
 import conf from "../../../conf/conf";
@@ -15,6 +15,7 @@ import {
   Globe2,
   Building2,
 } from "lucide-react";
+import DateField from "../../DateField/DateField";
 
 const ACCENT = "#CD4A3D";
 
@@ -70,6 +71,7 @@ const EventPostForm = () => {
     watch,
     formState: { errors },
     setValue,
+    control
   } = useForm();
 
   const [postedBy, setUser] = useState({});
@@ -329,7 +331,7 @@ const EventPostForm = () => {
                 </Label>
                 <div className="relative">
                   <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                  <Input
+                  {/* <Input
                     id="eventDate"
                     type="date"
                     min={today}
@@ -338,9 +340,28 @@ const EventPostForm = () => {
                       required: "Event date is required",
                     })}
                     error={!!errors.eventDate}
+                  /> */}
+
+                  <Controller
+                    name="eventDate"
+                    control={control}
+                    rules={{ required: "Event date is required" }}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <DateField
+                          id="eventDate"
+                          value={field.value}
+                          onChange={field.onChange}
+                          minDate={new Date()}            // same idea as your previous "today"
+                          placeholder="Select date"
+                          error={!!fieldState.error}
+                        />
+                        <FieldError message={fieldState.error?.message} />
+                      </>
+                    )}
                   />
                 </div>
-                <FieldError message={errors.eventDate?.message} />
+                {/* <FieldError message={errors.eventDate?.message} /> */}
               </div>
 
               <div>

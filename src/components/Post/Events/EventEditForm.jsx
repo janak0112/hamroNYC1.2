@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import authService from "../../../appwrite/auth";
@@ -8,6 +8,7 @@ import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
 import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import DateField from "../../DateField/DateField";
 // import { toast } from "react-hot-toast";
 
 const EventEditForm = () => {
@@ -18,6 +19,7 @@ const EventEditForm = () => {
     formState: { errors },
     reset,
     setValue,
+    control
   } = useForm();
 
   const [postedBy, setUser] = useState({});
@@ -321,14 +323,32 @@ const EventEditForm = () => {
             <label htmlFor="eventDate" className={labelBase}>
               Event Date
             </label>
-            <input
+            {/* <input
               id="eventDate"
               type="date"
               min={today}
               {...register("eventDate", { required: "Event date is required" })}
               className={inputBase}
             />
-            {fieldError(errors.eventDate?.message)}
+            {fieldError(errors.eventDate?.message)} */}
+                   <Controller
+                    name="eventDate"
+                    control={control}
+                    rules={{ required: "Event date is required" }}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <DateField
+                          id="eventDate"
+                          value={field.value}
+                          onChange={field.onChange}
+                          minDate={new Date()}            // same idea as your previous "today"
+                          placeholder="Select date"
+                          error={!!fieldState.error}
+                        />
+                        <fieldError message={fieldState.error?.message} />
+                      </>
+                    )}
+                  />
           </div>
 
           <div>
