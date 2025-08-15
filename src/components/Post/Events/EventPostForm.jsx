@@ -6,6 +6,7 @@ import conf from "../../../conf/conf";
 import { checkUserLoggedIn } from "../../../utils/authUtils";
 import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import DateField from "../../DateField/DateField";
 import {
   CalendarDays,
   Clock,
@@ -15,7 +16,6 @@ import {
   Globe2,
   Building2,
 } from "lucide-react";
-import DateField from "../../DateField/DateField";
 
 const ACCENT = "#CD4A3D";
 

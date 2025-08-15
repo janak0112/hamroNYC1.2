@@ -1,6 +1,6 @@
 // src/components/Forms/Rooms/RoomEditForm.jsx
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm ,Controller} from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import { uploadImages } from "../../../utils/uploadFile";
@@ -9,6 +9,7 @@ import conf from "../../../conf/conf";
 import { checkUserLoggedIn } from "../../../utils/authUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
 import { createDocumentWithToast } from "../../../utils/documentUtils";
+import DateField from "../../DateField/DateField";
 
 import {
   Home,
@@ -68,6 +69,7 @@ const RoomEditForm = () => {
     setValue,
     reset,
     watch,
+    control
   } = useForm();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -355,7 +357,7 @@ const RoomEditForm = () => {
               <div>
                 <Label htmlFor="availableFrom" required>Available From</Label>
                 <div className="relative">
-                  <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  {/* <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                   <Input
                     id="availableFrom"
                     type="date"
@@ -363,9 +365,27 @@ const RoomEditForm = () => {
                     className="pl-9"
                     {...register("availableFrom", { required: "Availability date is required" })}
                     error={!!errors.availableFrom}
-                  />
+                  /> */}
+                             <Controller
+                  name="availableFrom"
+                  control={control}
+                  rules={{ required: "Availability date is required" }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <DateField
+                        id="availableFrom"
+                        value={field.value}
+                        onChange={(v) => field.onChange(normalizeDate(v))}
+                        minDate={new Date()}
+                        placeholder="Select date"
+                        error={!!fieldState.error}
+                      />
+                      <FieldError message={fieldState.error?.message} />
+                    </>
+                  )}
+                />
                 </div>
-                <FieldError message={errors.availableFrom?.message} />
+                {/* <FieldError message={errors.availableFrom?.message} /> */}
               </div>
             </section>
 

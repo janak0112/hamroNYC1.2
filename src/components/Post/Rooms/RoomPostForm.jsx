@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { createDocumentWithToast } from "../../../utils/documentUtils";
 import { checkUserLoggedIn } from "../../../utils/authUtils";
 import { uploadImages } from "../../../utils/uploadFile";
 import conf from "../../../conf/conf";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import DateField from "../../DateField/DateField";
 import {
   Home,
   DollarSign,
@@ -31,9 +32,8 @@ const Label = ({ htmlFor, children, required }) => (
 const Input = ({ error, className = "", ...rest }) => (
   <input
     {...rest}
-    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
-      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
-    } ${className}`}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+      } ${className}`}
   />
 );
 
@@ -41,18 +41,16 @@ const Textarea = ({ error, className = "", ...rest }) => (
   <textarea
     {...rest}
     rows={5}
-    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
-      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
-    } ${className}`}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+      } ${className}`}
   />
 );
 
 const Select = ({ error, className = "", children, ...rest }) => (
   <select
     {...rest}
-    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10 ${
-      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
-    } ${className}`}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10 ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+      } ${className}`}
   >
     {children}
   </select>
@@ -69,6 +67,7 @@ const RoomPostForm = () => {
     setValue,
     reset,
     watch,
+    control
   } = useForm();
   const navigate = useNavigate();
 
@@ -326,7 +325,7 @@ const RoomPostForm = () => {
                   Available From
                 </Label>
                 <div className="relative">
-                  <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  {/* <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                   <Input
                     id="availableFrom"
                     type="date"
@@ -336,141 +335,160 @@ const RoomPostForm = () => {
                       required: "Availability date is required",
                     })}
                     error={!!errors.availableFrom}
+                  /> */}
+
+                  <Controller
+                    name="eventDate"
+                    control={control}
+                    rules={{ required: "Event date is required" }}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <DateField
+                          id="eventDate"
+                          value={field.value}
+                          onChange={field.onChange}
+                          minDate={new Date()} // same idea as your previous "today"
+                          placeholder="Select date"
+                          error={!!fieldState.error}
+                        />
+                        <FieldError message={fieldState.error?.message} />
+                      </>
+                    )}
                   />
                 </div>
-                <FieldError message={errors.availableFrom?.message} />
-              </div>
-            </section>
-
-            {/* Studio + Beds/Baths */}
-            <section className="grid gap-6 md:grid-cols-2">
-              <div>
-                <Label htmlFor="isStudio" required>
-                  Is this a Studio?
-                </Label>
-                <Select
-                  id="isStudio"
-                  {...register("isStudio", { required: true })}
-                  onChange={handleStudioChange}
-                >
-                  <option value="false">No, not a studio</option>
-                  <option value="true">Yes, studio</option>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="bedrooms" required>
-                    Bedrooms
-                  </Label>
-                  <div className="relative">
-                    <BedDouble className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="bedrooms"
-                      type="number"
-                      min={isStudio ? 1 : 0}
-                      className="pl-9"
-                      disabled={isStudio}
-                      {...register("bedrooms", {
-                        required: "Bedrooms is required",
-                        min: {
-                          value: isStudio ? 1 : 0,
-                          message: "Invalid value",
-                        },
-                      })}
-                      error={!!errors.bedrooms}
-                    />
-                  </div>
-                  <FieldError message={errors.bedrooms?.message} />
-                </div>
-
-                <div>
-                  <Label htmlFor="bathrooms" required>
-                    Bathrooms
-                  </Label>
-                  <div className="relative">
-                    <Bath className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="bathrooms"
-                      type="number"
-                      min={isStudio ? 1 : 0}
-                      className="pl-9"
-                      disabled={isStudio}
-                      {...register("bathrooms", {
-                        required: "Bathrooms is required",
-                        min: {
-                          value: isStudio ? 1 : 0,
-                          message: "Invalid value",
-                        },
-                      })}
-                      error={!!errors.bathrooms}
-                    />
-                  </div>
-                  <FieldError message={errors.bathrooms?.message} />
-                </div>
-              </div>
-            </section>
-
-            {/* Checkboxes */}
-            <section className="grid gap-4 md:grid-cols-2">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  {...register("utilitiesIncluded")}
-                  className="h-4 w-4"
-                />
-                <span className="text-sm font-semibold">
-                  Utilities Included
-                </span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  {...register("furnishing")}
-                  className="h-4 w-4"
-                />
-                <span className="text-sm font-semibold">Furnished</span>
-              </label>
-            </section>
-
-            {/* Images */}
-            <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <div className="mb-2 flex items-center gap-2">
-                <Home className="h-4 w-4 text-gray-500" />
-                <h3 className="text-sm font-semibold text-gray-900">Photos</h3>
-              </div>
-              <p className="mb-3 text-xs text-gray-500">
-                Add bright photos of the room and common areas. First image
-                becomes the cover.
-              </p>
-              <ImageUploader
-                selectedFiles={selectedFiles}
-                setSelectedFiles={setSelectedFiles}
-                imagePreview={imagePreview}
-                setImagePreview={setImagePreview}
-              />
-            </section>
-
-            <p className="text-xs text-gray-500">
-              <strong>Disclaimer:</strong> We only promote properties with no
-              agent fees.
-            </p>
-
-            {/* Submit */}
-            <div className="flex items-center justify-end">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--accent,#CD4A3D)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto"
-                style={{ ["--accent"]: ACCENT }}
-              >
-                {isSubmitting ? "Creating Listing..." : "Create Listing"}
-              </button>
+              {/* <FieldError message={errors.availableFrom?.message} /> */}
             </div>
-          </form>
-        </div>
+          </section>
+
+          {/* Studio + Beds/Baths */}
+          <section className="grid gap-6 md:grid-cols-2">
+            <div>
+              <Label htmlFor="isStudio" required>
+                Is this a Studio?
+              </Label>
+              <Select
+                id="isStudio"
+                {...register("isStudio", { required: true })}
+                onChange={handleStudioChange}
+              >
+                <option value="false">No, not a studio</option>
+                <option value="true">Yes, studio</option>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bedrooms" required>
+                  Bedrooms
+                </Label>
+                <div className="relative">
+                  <BedDouble className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="bedrooms"
+                    type="number"
+                    min={isStudio ? 1 : 0}
+                    className="pl-9"
+                    disabled={isStudio}
+                    {...register("bedrooms", {
+                      required: "Bedrooms is required",
+                      min: {
+                        value: isStudio ? 1 : 0,
+                        message: "Invalid value",
+                      },
+                    })}
+                    error={!!errors.bedrooms}
+                  />
+                </div>
+                <FieldError message={errors.bedrooms?.message} />
+              </div>
+
+              <div>
+                <Label htmlFor="bathrooms" required>
+                  Bathrooms
+                </Label>
+                <div className="relative">
+                  <Bath className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="bathrooms"
+                    type="number"
+                    min={isStudio ? 1 : 0}
+                    className="pl-9"
+                    disabled={isStudio}
+                    {...register("bathrooms", {
+                      required: "Bathrooms is required",
+                      min: {
+                        value: isStudio ? 1 : 0,
+                        message: "Invalid value",
+                      },
+                    })}
+                    error={!!errors.bathrooms}
+                  />
+                </div>
+                <FieldError message={errors.bathrooms?.message} />
+              </div>
+            </div>
+          </section>
+
+          {/* Checkboxes */}
+          <section className="grid gap-4 md:grid-cols-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                {...register("utilitiesIncluded")}
+                className="h-4 w-4"
+              />
+              <span className="text-sm font-semibold">
+                Utilities Included
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                {...register("furnishing")}
+                className="h-4 w-4"
+              />
+              <span className="text-sm font-semibold">Furnished</span>
+            </label>
+          </section>
+
+          {/* Images */}
+          <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <Home className="h-4 w-4 text-gray-500" />
+              <h3 className="text-sm font-semibold text-gray-900">Photos</h3>
+            </div>
+            <p className="mb-3 text-xs text-gray-500">
+              Add bright photos of the room and common areas. First image
+              becomes the cover.
+            </p>
+            <ImageUploader
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              imagePreview={imagePreview}
+              setImagePreview={setImagePreview}
+            />
+          </section>
+
+          <p className="text-xs text-gray-500">
+            <strong>Disclaimer:</strong> We only promote properties with no
+            agent fees.
+          </p>
+
+          {/* Submit */}
+          <div className="flex items-center justify-end">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--accent,#CD4A3D)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto"
+              style={{ ["--accent"]: ACCENT }}
+            >
+              {isSubmitting ? "Creating Listing..." : "Create Listing"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
+    </div >
   );
 };
 
