@@ -24,7 +24,7 @@ const MarketDetailContent = ({ item, imageUrl }) => {
       : "";
 
   const postedBy =
-    (item.postedBy && formatName(JSON.parse(item.postedBy).name)) ||
+    (item.postedByName && formatName(item.postedByName)) ||
     item.email ||
     "Anonymous User";
 

@@ -34,7 +34,8 @@ const PostLookingForm = () => {
     contact: "+1",
     description: "",
     postType: "looking",
-    postedBy: "",
+    postedById: "",
+    postedByName: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -52,7 +53,8 @@ const PostLookingForm = () => {
         }
         setForm((p) => ({
           ...p,
-          postedBy: JSON.stringify({ id: user.$id, name: user.name }),
+          postedById: user.$id,
+          postedByName: user.name,
         }));
       } catch (err) {
         console.error("Error getting user:", err);

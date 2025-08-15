@@ -1,12 +1,13 @@
 // utils/createDocumentWithToast.js
 import listingService from "../appwrite/config";
 import { showSuccessToast, showErrorToast } from "./toastHandler";
+import PostSubmitted from "../components/Post/PostSubmitted";
 
 export const createDocumentWithToast = async (
   data,
   collectionId,
   navigate,
-  path = "/"
+  path = "/post-submitted"
 ) => {
   try {
     const response = await listingService.createDocument(data, collectionId);

@@ -128,15 +128,15 @@ const RoomPostForm = () => {
         isStudio: data.isStudio === "true",
         utilitiesIncluded: !!data.utilitiesIncluded,
         imageIds: uploadedImageIds,
-        postedBy: JSON.stringify(user),
+        postedById: user.id,
+        postedByName: user.name,
         publish: true,
       };
 
       await createDocumentWithToast(
         roomData,
         conf.appWriteCollectionIdRooms,
-        navigate,
-        "/rooms"
+        navigate
       );
       reset();
       setSelectedFiles([]);

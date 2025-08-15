@@ -26,19 +26,26 @@ export const DataProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminMode, setAdminMode] = useState(false);
 
-  const client = new Client().setEndpoint(conf.appWriteUrl).setProject(conf.appWriteProjectId);
+  const client = new Client()
+    .setEndpoint(conf.appWriteUrl)
+    .setProject(conf.appWriteProjectId);
   const databases = new Databases(client);
   const storage = new Storage(client);
   const teams = new Teams(client);
 
-  const userIsAdmin = useCallback(async (teamId) => {
-    try {
-      const res = await teams.listMemberships(teamId);
-      return res.memberships?.some((m) => m.roles?.includes("admin")) || false;
-    } catch {
-      return false;
-    }
-  }, [teams]);
+  const userIsAdmin = useCallback(
+    async (teamId) => {
+      try {
+        const res = await teams.listMemberships(teamId);
+        return (
+          res.memberships?.some((m) => m.roles?.includes("admin")) || false
+        );
+      } catch {
+        return false;
+      }
+    },
+    [teams]
+  );
 
   const collectionIds = [
     { type: "jobs", id: conf.appWriteCollectionIdJobs },
@@ -59,15 +66,18 @@ export const DataProvider = ({ children }) => {
   // status: "approved" | "unapproved" | "pending" | "all"
   const listByCollection = async (collectionId, status = "approved") => {
     const queries = [Query.orderDesc("$createdAt")];
-    if (status === "approved") queries.push(Query.equal("approvedByAdmin", true));
-    if (status === "unapproved") queries.push(Query.equal("approvedByAdmin", false));
+    if (status === "approved")
+      queries.push(Query.equal("approvedByAdmin", true));
+    if (status === "unapproved")
+      queries.push(Query.equal("approvedByAdmin", false));
     if (status === "pending") {
-      // Works on Appwrite ≥1.3
       queries.push(Query.isNull("approvedByAdmin"));
-      // If you're on older Appwrite without isNull, remove the line above
-      // and filter client-side after fetching "all".
     }
-    return databases.listDocuments(conf.appWriteDatabaseId, collectionId, queries);
+    return databases.listDocuments(
+      conf.appWriteDatabaseId,
+      collectionId,
+      queries
+    );
   };
 
   const fetchAllData = useCallback(async () => {
@@ -81,7 +91,11 @@ export const DataProvider = ({ children }) => {
       for (const col of collectionIds) {
         if (showOnlyApproved) {
           const a = await listByCollection(col.id, "approved");
-          const map = a.documents.map((d) => ({ ...d, type: col.type, collectionId: col.id }));
+          const map = a.documents.map((d) => ({
+            ...d,
+            type: col.type,
+            collectionId: col.id,
+          }));
           approved.push(...map);
         } else {
           // admin mode: fetch 3 buckets in parallel
@@ -91,22 +105,17 @@ export const DataProvider = ({ children }) => {
             listByCollection(col.id, "pending"),
           ]);
 
-          const map = (docs) => docs.map((d) => ({ ...d, type: col.type, collectionId: col.id }));
+          const map = (docs) =>
+            docs.map((d) => ({ ...d, type: col.type, collectionId: col.id }));
           approved.push(...map(a.documents));
           unapproved.push(...map(u.documents));
           pending.push(...map(p.documents));
-
-          // ---- Fallback if your Appwrite doesn't support isNull ----
-          // const all = await databases.listDocuments(conf.appWriteDatabaseId, col.id, [Query.orderDesc("$createdAt")]);
-          // const mapped = all.documents.map((d) => ({ ...d, type: col.type, collectionId: col.id }));
-          // approved.push(...mapped.filter(d => d.approvedByAdmin === true));
-          // unapproved.push(...mapped.filter(d => d.approvedByAdmin === false));
-          // pending.push(...mapped.filter(d => d.approvedByAdmin === undefined || d.approvedByAdmin === null));
         }
       }
 
-      // Public view shows approved only in the existing arrays you already consume
-      setPosts(showOnlyApproved ? approved : [...approved, ...unapproved, ...pending]);
+      setPosts(
+        showOnlyApproved ? approved : [...approved, ...unapproved, ...pending]
+      );
 
       setJobs(approved.filter((d) => d.type === "jobs"));
       setRooms(approved.filter((d) => d.type === "rooms"));
@@ -149,24 +158,93 @@ export const DataProvider = ({ children }) => {
   };
 
   const handleDeleteDocument = async (collectionId, documentId) => {
-    await databases.deleteDocument(conf.appWriteDatabaseId, collectionId, documentId);
+    await databases.deleteDocument(
+      conf.appWriteDatabaseId,
+      collectionId,
+      documentId
+    );
     await fetchAllData();
   };
 
-  useEffect(() => { fetchUser(); }, [fetchUser]);
-  useEffect(() => { fetchAllData(); }, [fetchAllData]);
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
+  // helper: list all docs by this user, regardless of approval status
+  const listByUser = async (collectionId, userId) => {
+    const queries = [
+      Query.equal("postedById", userId),
+      Query.orderDesc("$createdAt"),
+    ];
+    return databases.listDocuments(
+      conf.appWriteDatabaseId,
+      collectionId,
+      queries
+    );
+  };
+  // public API for MyPosts
+  const getMyPosts = async (userId) => {
+    const results = await Promise.all(
+      collectionIds.map(async (col) => {
+        const res = await listByUser(col.id, userId);
+        // tag with type/collectionId just like elsewhere
+        return res.documents.map((d) => ({
+          ...d,
+          type: col.type,
+          collectionId: col.id,
+        }));
+      })
+    );
+
+    const flat = results.flat();
+    return {
+      jobs: flat.filter((d) => d.type === "jobs"),
+      rooms: flat.filter((d) => d.type === "rooms"),
+      market: flat.filter((d) => d.type === "market"),
+      events: flat.filter((d) => d.type === "events"),
+      travelCompanion: flat.filter((d) => d.type === "travelCompanion"),
+    };
+  };
+
+  // toggle / set publish on a document
+  const setPublish = async (collectionId, documentId, publish) => {
+    await databases.updateDocument(
+      conf.appWriteDatabaseId,
+      collectionId,
+      documentId,
+      { publish: !!publish }
+    );
+  };
 
   return (
     <DataContext.Provider
       value={{
         // existing
-        posts, jobs, rooms, market, events, travelCompanion,
-        loading, error, authUser, fetchAllData,
-        approveDocument, declineDocument, handleDeleteDocument,
-        adminMode, setAdminMode, isAdmin,
-
+        posts,
+        jobs,
+        rooms,
+        market,
+        events,
+        travelCompanion,
+        loading,
+        error,
+        authUser,
+        fetchAllData,
+        approveDocument,
+        declineDocument,
+        handleDeleteDocument,
+        adminMode,
+        setAdminMode,
+        isAdmin,
+        getMyPosts,
+        setPublish,
         // NEW buckets for admin UI
-        approvedPosts, unapprovedPosts, pendingPosts,
+        approvedPosts,
+        unapprovedPosts,
+        pendingPosts,
       }}
     >
       {children}

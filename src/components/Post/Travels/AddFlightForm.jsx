@@ -20,7 +20,8 @@ const AddFlightForm = () => {
     transitAirport: "",
     airlines: "",
     postType: "offering", // offering | looking
-    postedBy: "",
+    postedById: "",
+    postedByName: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -32,13 +33,15 @@ const AddFlightForm = () => {
     const getUser = async () => {
       try {
         const user = await authService.getCurrentUser();
+        console.log(user);
         if (!user) {
           navigate(`/login?redirect=/add-your-flight`);
           return;
         }
         setForm((prev) => ({
           ...prev,
-          postedBy: JSON.stringify({ id: user.$id, name: user.name }),
+          postedById: user.$id,
+          postedByName: user.name,
         }));
       } catch (err) {
         console.error("Error getting user:", err);

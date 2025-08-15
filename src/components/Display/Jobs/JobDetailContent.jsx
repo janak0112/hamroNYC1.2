@@ -22,18 +22,6 @@ function JobDetailContent({ job, imageUrl }) {
           .join(" ")
       : "";
 
-  const postedByName = (() => {
-    try {
-      const pb =
-        typeof job.postedBy === "string"
-          ? JSON.parse(job.postedBy)
-          : job.postedBy;
-      return fmtName(pb?.name);
-    } catch {
-      return "";
-    }
-  })();
-
   const salaryNumber =
     typeof job.salary === "number" ? job.salary : Number(job.salary ?? NaN);
   const salaryLabel =
@@ -232,10 +220,12 @@ function JobDetailContent({ job, imageUrl }) {
           </div>
 
           {/* Posted by */}
-          {postedByName && (
+          {job.postedByName && (
             <p className="mt-4 text-xs text-gray-500">
               Posted by{" "}
-              <span className="font-medium text-gray-800">{postedByName}</span>
+              <span className="font-medium text-gray-800">
+                {job.postedByName}
+              </span>
             </p>
           )}
 

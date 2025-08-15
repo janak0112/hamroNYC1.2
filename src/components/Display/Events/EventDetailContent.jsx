@@ -24,18 +24,6 @@ function EventDetailContent({ event, imageUrl }) {
           .join(" ")
       : "";
 
-  const postedByName = (() => {
-    try {
-      const pb =
-        typeof event.postedBy === "string"
-          ? JSON.parse(event.postedBy)
-          : event.postedBy;
-      return formatName(pb?.name);
-    } catch {
-      return "";
-    }
-  })();
-
   const dateLabel = event.eventDate
     ? new Date(event.eventDate).toLocaleDateString([], {
         year: "numeric",
@@ -264,11 +252,11 @@ function EventDetailContent({ event, imageUrl }) {
               </a>
             )}
 
-            {postedByName && (
+            {event.postedByName && (
               <p className="text-gray-500">
                 Posted by{" "}
                 <span className="font-medium text-gray-800">
-                  {postedByName}
+                  {event.postedByName}
                 </span>
               </p>
             )}

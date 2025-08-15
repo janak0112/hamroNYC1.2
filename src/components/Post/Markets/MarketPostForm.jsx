@@ -105,7 +105,8 @@ const MarketPostForm = () => {
         contact: data.contact?.trim(),
         condition: data.condition,
         imageIds: uploadedImageIds,
-        postedBy: JSON.stringify(user),
+        postedById: user.id,
+        postedByName: user.name,
         publish: true,
       };
 

@@ -71,7 +71,7 @@ const EventPostForm = () => {
     watch,
     formState: { errors },
     setValue,
-    control
+    control,
   } = useForm();
 
   const [postedBy, setUser] = useState({});
@@ -120,12 +120,15 @@ const EventPostForm = () => {
         eventTime: data.eventTime,
         ticketOption: data.ticketOption,
         ticketCost:
-          data.ticketOption === "paid" ? String(parseFloat(data.ticketCost)) : null,
+          data.ticketOption === "paid"
+            ? String(parseFloat(data.ticketCost))
+            : null,
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink : null,
         imageIds: uploadedImageIds,
-        postedBy: JSON.stringify(postedBy).slice(0, 999),
+        postedById: postedBy.id,
+        postedByName: postedBy.name,
       };
 
       createDocumentWithToast(
@@ -352,7 +355,7 @@ const EventPostForm = () => {
                           id="eventDate"
                           value={field.value}
                           onChange={field.onChange}
-                          minDate={new Date()}            // same idea as your previous "today"
+                          minDate={new Date()} // same idea as your previous "today"
                           placeholder="Select date"
                           error={!!fieldState.error}
                         />

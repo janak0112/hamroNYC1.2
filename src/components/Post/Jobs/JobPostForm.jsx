@@ -143,7 +143,8 @@ const JobPostForm = () => {
         jobLink: data.jobLink || null,
         checkOnly: !!data.checkOnly,
         imageIds: uploadedImageIds,
-        postedBy: JSON.stringify(userId),
+        postedById: userId.id,
+        postedByName: userId.name,
         publish: true,
       };
 

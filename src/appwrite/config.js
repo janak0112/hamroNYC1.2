@@ -1,4 +1,4 @@
-import { Client, Databases, ID,Query } from "appwrite";
+import { Client, Databases, ID, Query } from "appwrite";
 import conf from "../conf/conf";
 
 // Initialize Appwrite client
@@ -115,6 +115,6 @@ const listingService = {
   getDocument,
   updateDocument,
   deleteDocument,
-  getListingsByUser
+  getListingsByUser,
 };
 export default listingService;

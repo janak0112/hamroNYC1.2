@@ -21,6 +21,7 @@ import {
   JobPostForm,
   MarketPostForm,
   RoomPostForm,
+  PostSubmitted,
   EventPostForm,
 } from "./components/Post";
 import {
@@ -56,26 +57,27 @@ function App() {
               <Route path="post-looking" element={<PostLookingForm />} />
               <Route path="post-listing" element={<PostListing />} />
               <Route path="verify-phone" element={<PhoneVerificationModal />} />
+              <Route path="post-submitted" element={<PostSubmitted />} />
 
               {/* JOBS */}
 
               <Route path="add-job" element={<JobPostForm />} />
-              <Route path="jobs-edit/:id" element={<JobEditForm />} />
+              <Route path="edit/jobs/:id" element={<JobEditForm />} />
               <Route path="jobs/:id" element={<JobDetailPage />} />
 
               {/* EVENTS */}
               <Route path="add-event" element={<EventPostForm />} />
               <Route path="events/:id" element={<EventDetailPage />} />
-              <Route path="events-edit/:id" element={<EventEditForm />} />
+              <Route path="edit/events/:id" element={<EventEditForm />} />
 
               {/* ROOMS */}
               <Route path="add-room" element={<RoomPostForm />} />
-              <Route path="rooms-edit/:id" element={<RoomEditForm />} />
+              <Route path="edit/rooms/:id" element={<RoomEditForm />} />
               <Route path="rooms/:id" element={<RoomDetailPage />} />
 
               {/* MARKET */}
               <Route path="add-market" element={<MarketPostForm />} />
-              <Route path="market-edit/:id" element={<MarketEditForm />} />
+              <Route path="edit/market/:id" element={<MarketEditForm />} />
               <Route path="market/:id" element={<MarketDetailPage />} />
 
               {/* Tiles */}

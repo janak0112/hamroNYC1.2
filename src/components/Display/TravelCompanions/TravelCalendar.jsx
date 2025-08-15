@@ -172,9 +172,9 @@ const TravelCalendar = () => {
                 const via = c.transitAirport?.toUpperCase();
                 const name = (() => {
                   try {
-                    return c.postedBy
-                      ? JSON.parse(c.postedBy)
-                          .name.split(" ")
+                    return c.postedByName
+                      ? c.postedByName
+                          .split(" ")
                           .map(
                             (w) =>
                               w.charAt(0).toUpperCase() +

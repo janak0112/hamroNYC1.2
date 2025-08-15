@@ -27,18 +27,6 @@ function RoomDetailContent({ room, imageUrl }) {
           .join(" ")
       : "";
 
-  const postedByName = (() => {
-    try {
-      const pb =
-        typeof room.postedBy === "string"
-          ? JSON.parse(room.postedBy)
-          : room.postedBy;
-      return formatName(pb?.name);
-    } catch {
-      return "";
-    }
-  })();
-
   const dateLabel = room.$createdAt
     ? new Date(room.$createdAt).toLocaleDateString([], {
         year: "numeric",
@@ -244,12 +232,14 @@ function RoomDetailContent({ room, imageUrl }) {
           </div>
 
           {/* Posted by */}
-          {postedByName && (
+          {
             <p className="mt-4 text-xs text-gray-500">
               Posted by{" "}
-              <span className="font-medium text-gray-800">{postedByName}</span>
+              <span className="font-medium text-gray-800">
+                {formatName(room.postedByName)}
+              </span>
             </p>
-          )}
+          }
 
           {/* CTA */}
           <div className="mt-6">
