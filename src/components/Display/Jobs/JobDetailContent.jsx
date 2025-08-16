@@ -150,7 +150,7 @@ function JobDetailContent({ job, imageUrl }) {
                     : "text-green-600"
                 }`}
               >
-                {salaryLabel}
+                ${salaryLabel}
               </p>
             </div>
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -193,7 +193,7 @@ function JobDetailContent({ job, imageUrl }) {
                   : "text-green-600"
               }`}
             >
-              {salaryLabel}
+              ${salaryLabel}
             </p>
           </div>
 

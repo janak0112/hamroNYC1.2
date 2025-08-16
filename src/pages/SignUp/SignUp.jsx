@@ -45,7 +45,7 @@ function SignUp() {
         password: data.password,
         userName,
       });
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       setErrorMessage(
         error?.message || "Failed to create account. Please try again."

@@ -12,7 +12,7 @@ import ImgApt from "../../../assets/img/noimage.png";
 import { getImageUrls } from "../../../utils/uploadFile";
 import { DataContext } from "../../../context/DataContext";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#eb3822";
 
 export default function ListingList() {
   const { type } = useParams();

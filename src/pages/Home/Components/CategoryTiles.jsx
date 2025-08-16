@@ -10,7 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#eb3822";
 
 const categories = [
   {

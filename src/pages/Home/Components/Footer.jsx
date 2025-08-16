@@ -9,9 +9,9 @@ import {
   Globe,
   ArrowUpRight,
 } from "lucide-react";
-import logo from "../../../assets/img/logo-2d.png";
+import logo from "../../../assets/img/logo-1.png";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#eb3822";
 
 const IconButton = ({ href, label, children }) => (
   <a

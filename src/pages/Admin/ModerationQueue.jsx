@@ -3,6 +3,7 @@ import React, { useMemo, useState, useCallback } from "react";
 import { Info, XCircle, CheckCircle2, Eye, Check, Ban } from "lucide-react";
 import { BRAND, btnBase, btnBrandSolid } from "./ui"; // adjust path
 import PreviewModal from "./PreviewModal"; // <-- reuse your existing modal
+import { Link } from "react-router-dom";
 
 export default function ModerationQueue({
   queue = [],
@@ -139,11 +140,14 @@ export default function ModerationQueue({
                   {/* Top row */}
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <div
-                        className="truncate text-sm font-semibold text-gray-800"
-                        title={p.title || "Untitled"}
-                      >
-                        {p.title || "Untitled"}
+                      <div className="truncate text-sm font-semibold text-gray-800">
+                        <Link
+                          to={`/${p.type}/${p.$id}`}
+                          className="hover:text-[#CD4A3D] transition-colors"
+                          title={p.title || "Untitled"}
+                        >
+                          {p.title || "Untitled"}
+                        </Link>
                       </div>
                       {p.description && (
                         <p className="mt-1 line-clamp-2 text-xs text-gray-500">

@@ -7,7 +7,7 @@ import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, Loader2 } from "lucide-react";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#eb3822";
 
 function LogIn() {
   const {

@@ -4,9 +4,9 @@ import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Menu, X, User2, Plus, LogOut } from "lucide-react";
 import authService from "../../appwrite/auth";
-import logo from "../../assets/img/logo-2d.png";
+import logo from "../../assets/img/logo-1.png";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#EB3822";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -82,18 +82,12 @@ const Header = forwardRef(function Header(_, ref) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         {/* Left: Brand */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
             <img
               src={logo}
               alt="HamroNYC"
-              className="h-9 w-9 rounded-2xl object-contain ring-1 ring-gray-100"
+              className="w-36 md:w-44 lg:w-56 h-auto object-contain block" // wider
             />
-            <span
-              className="text-xl font-extrabold tracking-tight"
-              style={{ color: ACCENT }}
-            >
-              HamroNYC.com
-            </span>
           </Link>
         </div>
 
