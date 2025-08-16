@@ -17,7 +17,7 @@ import {
   Link2,
 } from "lucide-react";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#ec3922";
 
 /* tiny UI helpers */
 const Label = ({ htmlFor, children, required }) => (

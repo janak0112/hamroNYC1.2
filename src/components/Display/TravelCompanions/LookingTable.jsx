@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 import { DataContext } from "../../../context/DataContext";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#28303E";
 
 const months = [
   "January",

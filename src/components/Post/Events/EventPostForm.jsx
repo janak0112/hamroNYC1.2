@@ -17,7 +17,7 @@ import {
   Building2,
 } from "lucide-react";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#ec3922";
 
 const Label = ({ htmlFor, children, required }) => (
   <label

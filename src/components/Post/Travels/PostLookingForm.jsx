@@ -5,7 +5,7 @@ import listingService from "../../../appwrite/config";
 import conf from "../../../conf/conf";
 import authService from "../../../appwrite/auth";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#28303E";
 const todayStr = () => new Date().toISOString().split("T")[0];
 
 const months = [

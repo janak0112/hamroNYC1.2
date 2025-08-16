@@ -80,9 +80,9 @@ const CategoryCard = ({ name, description, Icon, link, badge }) => (
 );
 
 const CategoryTiles = () => (
-  <section className="mx-auto max-w-6xl px-4 py-16">
+  <section className="mx-auto max-w-6xl px-4 py-5">
     <div className="mb-6 flex items-end justify-between">
-      <h2 className="text-xl font-bold text-gray-900">Browse by category</h2>
+      <h2 className="text-xl font-bold text-gray-900">Browse by Category</h2>
     </div>
 
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">

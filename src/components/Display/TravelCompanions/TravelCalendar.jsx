@@ -4,7 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import { DataContext } from "../../../context/DataContext";
 import { useNavigate } from "react-router-dom";
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#EC3922";
 const formatDate = (date) => date.toISOString().split("T")[0];
 
 const TravelCalendar = () => {
@@ -75,9 +75,9 @@ const TravelCalendar = () => {
           <div
             className="rounded-xl px-3 py-1 text-xs font-semibold"
             style={{
-              background: "rgba(37,99,235,.12)",
-              color: ACCENT,
-              border: "1px solid rgba(37,99,235,.2)",
+              background: "rgba(236, 57, 34, 0.12)", // #EC3922 with ~12% opacity
+              color: "#EC3922",
+              border: "1px solid rgba(236, 57, 34, 0.2)", // #EC3922 with ~20% opacity
             }}
           >
             HamroNYC • Travel

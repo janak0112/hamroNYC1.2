@@ -4,7 +4,7 @@ import TravelCalendar from "./TravelCalendar";
 import LookingTable from "./LookingTable";
 import "./Calender.css"; // keep your calendar tweaks
 
-const ACCENT = "#CD4A3D";
+const ACCENT = "#EB3822";
 
 const TravelCompanions = () => {
   const [tab, setTab] = useState("calendar"); // "calendar" | "requests"
@@ -40,15 +40,16 @@ const TravelCompanions = () => {
           <div className="flex gap-2">
             <a
               href="/add-your-flight"
-              className="rounded-xl bg-[var(--accent,#2563EB)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ ["--accent"]: ACCENT }}
+              className="rounded-xl bg-[var(--accent,#28303E)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ ["--accent"]: "#28303E" }}
             >
               ✈️ Add Your Flight
             </a>
+
             <a
               href="/post-looking"
-              className="rounded-xl border border-[var(--accent,#2563EB)] px-4 py-2 text-sm font-semibold text-[var(--accent,#2563EB)] transition hover:bg-[#eef3ff]"
-              style={{ ["--accent"]: ACCENT }}
+              className="rounded-xl border border-[var(--accent,#28303E)] px-4 py-2 text-sm font-semibold text-[var(--accent,#28303E)] transition hover:bg-[#eef3ff]"
+              style={{ ["--accent"]: "#28303E" }}
             >
               👀 I’m Looking
             </a>
