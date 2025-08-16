@@ -35,7 +35,7 @@ export const uploadFile = async (file) => {
 
 export const getFilePreview = (fileId, width = 600, height = 600) => {
   try {
-    const result = storage.getFilePreview(conf.appWriteBucketId, fileId, width, height);
+    const result = storage.getFileView(conf.appWriteBucketId, fileId, width, height);
     // result is a URL object or URL string (depending on SDK)
     return result?.href || result?.toString();  // fallback
   } catch (error) {

@@ -97,7 +97,7 @@ export default function PostSubmitted({
         <p className="mt-4 text-xs text-gray-500">
           Tip: You can find and manage all your posts in{" "}
           <a
-            href="/account/my-posts"
+            href="/my-posts"
             className="font-medium text-gray-700 underline decoration-[#CD4A3D]/30 underline-offset-4 hover:text-gray-900"
           >
             My Posts

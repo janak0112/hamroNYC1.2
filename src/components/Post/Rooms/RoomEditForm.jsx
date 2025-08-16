@@ -1,6 +1,6 @@
 // src/components/Forms/Rooms/RoomEditForm.jsx
 import React, { useState, useEffect } from "react";
-import { useForm ,Controller} from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import listingService from "../../../appwrite/config";
 import { uploadImages } from "../../../utils/uploadFile";
@@ -8,8 +8,8 @@ import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
 import { checkUserLoggedIn } from "../../../utils/authUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
-import { createDocumentWithToast } from "../../../utils/documentUtils";
 import DateField from "../../DateField/DateField";
+import { toast } from "react-toastify";
 
 import {
   Home,
@@ -33,8 +33,9 @@ const Label = ({ htmlFor, children, required }) => (
 const Input = ({ error, className = "", ...rest }) => (
   <input
     {...rest}
-    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
-      } ${className}`}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
   />
 );
 
@@ -42,16 +43,18 @@ const Textarea = ({ error, className = "", ...rest }) => (
   <textarea
     {...rest}
     rows={5}
-    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
-      } ${className}`}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-gray-400 focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
   />
 );
 
 const Select = ({ error, className = "", children, ...rest }) => (
   <select
     {...rest}
-    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10 ${error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
-      } ${className}`}
+    className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-gray-900/10 ${
+      error ? "border-red-300 focus:ring-red-100" : "border-gray-200"
+    } ${className}`}
   >
     {children}
   </select>
@@ -61,6 +64,15 @@ const FieldError = ({ message }) =>
   message ? <p className="mt-1 text-xs text-red-600">{message}</p> : null;
 /* ------------------------------------------------------ */
 
+/** Normalize any Date/string to YYYY-MM-DD in local time */
+function normalizeDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  // shift to local date (strip timezone) so split("T")[0] is correct
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().split("T")[0];
+}
+
 const RoomEditForm = () => {
   const {
     register,
@@ -69,19 +81,20 @@ const RoomEditForm = () => {
     setValue,
     reset,
     watch,
-    control
+    control,
   } = useForm();
+
   const navigate = useNavigate();
   const { id } = useParams();
 
   const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [isStudio, setIsStudio] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
   const studioWatch = watch("isStudio"); // "true" | "false"
 
   /* Auth (match RoomPostForm pattern) */
@@ -100,7 +113,6 @@ const RoomEditForm = () => {
           id
         );
 
-        // Normalize RHF values to match PostForm (strings for select; booleans for checkboxes)
         reset({
           title: room.title ?? "",
           description: room.description ?? "",
@@ -110,7 +122,9 @@ const RoomEditForm = () => {
           bedrooms: room.bedrooms ?? (room.isStudio ? 1 : 0),
           bathrooms: room.bathrooms ?? (room.isStudio ? 1 : 0),
           furnishing: !!room.furnishing,
-          availableFrom: room.availableFrom ? String(room.availableFrom).split("T")[0] : "",
+          availableFrom: room.availableFrom
+            ? String(room.availableFrom).split("T")[0]
+            : "",
           isStudio: String(!!room.isStudio), // "true" | "false"
           utilitiesIncluded: !!room.utilitiesIncluded,
         });
@@ -126,6 +140,7 @@ const RoomEditForm = () => {
         }
       } catch (err) {
         console.error("Error fetching room:", err);
+        setErrorMessage("Failed to load room data.");
       }
     };
 
@@ -154,43 +169,53 @@ const RoomEditForm = () => {
   };
 
   const onSubmit = async (data) => {
-    if (!user) return;
+    if (!user) {
+      setErrorMessage("Please log in to update a room listing.");
+      return;
+    }
 
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
       const uploadedImageIds = selectedFiles.length
         ? await uploadImages(selectedFiles)
         : [];
 
+      // merge & dedupe image IDs
+      const mergedImageIds = Array.from(
+        new Set([...existingImages.map((img) => img.id), ...uploadedImageIds])
+      );
+
       const roomData = {
         title: data.title?.trim(),
         description: data.description?.trim(),
-        price: data.price ? String(data.price) : 0,
+        price: data.price ? String(data.price) : "0",
         location: data.location?.trim(),
         contact: data.contact?.trim(),
-        bedrooms: parseInt(data.bedrooms, 10),
-        bathrooms: parseInt(data.bathrooms, 10),
+        bedrooms: Number.parseInt(data.bedrooms, 10) || 0,
+        bathrooms: Number.parseInt(data.bathrooms, 10) || 0,
         furnishing: !!data.furnishing,
-        availableFrom: data.availableFrom,
+        availableFrom: data.availableFrom, // already YYYY-MM-DD
         isStudio: data.isStudio === "true",
         utilitiesIncluded: !!data.utilitiesIncluded,
-        imageIds: [
-          ...existingImages.map((img) => img.id),
-          ...uploadedImageIds,
-        ],
-        postedBy: JSON.stringify(user),
-        publish: true,
+        imageIds: mergedImageIds,
+        // Do NOT override moderation fields on edit:
+        // postedBy, publish, etc. are intentionally untouched
       };
 
-      await createDocumentWithToast(
-        roomData,
+      await listingService.updateDocument(
         conf.appWriteCollectionIdRooms,
-        navigate,
+        id,
+        roomData
       );
 
+      toast.success("Room updated successfully");
+      setSelectedFiles([]);
       navigate(`/rooms/${id}`);
     } catch (error) {
       console.error("Error updating room listing:", error);
+      setErrorMessage(error?.message || "Failed to update room listing.");
+      toast.error("Failed to update room listing");
     } finally {
       setIsSubmitting(false);
     }
@@ -259,6 +284,13 @@ const RoomEditForm = () => {
           </div>
         </div>
 
+        {/* Top-level error */}
+        {errorMessage && (
+          <div className="mx-6 mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:mx-10">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Form card */}
         <div className="border-t border-gray-100 bg-white/70 px-6 py-8 sm:px-10">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -325,7 +357,20 @@ const RoomEditForm = () => {
                     type="tel"
                     placeholder="Phone / WhatsApp / Messenger"
                     className="pl-9"
-                    {...register("contact", { required: "Contact info is required" })}
+                    {...register("contact", {
+                      required: "Contact info is required",
+                      pattern: {
+                        value: /^[0-9+\-\s()]+$/,
+                        message: "Invalid contact number",
+                      },
+                      validate: (value) => {
+                        const digits = (value || "").replace(/\D/g, "");
+                        return (
+                          digits.length <= 15 ||
+                          "Contact number must be 15 digits or less"
+                        );
+                      },
+                    })}
                     error={!!errors.contact}
                   />
                 </div>
@@ -356,17 +401,7 @@ const RoomEditForm = () => {
 
               <div>
                 <Label htmlFor="availableFrom" required>Available From</Label>
-                <div className="relative">
-                  {/* <CalendarDays className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="availableFrom"
-                    type="date"
-                    min={today}
-                    className="pl-9"
-                    {...register("availableFrom", { required: "Availability date is required" })}
-                    error={!!errors.availableFrom}
-                  /> */}
-                             <Controller
+                <Controller
                   name="availableFrom"
                   control={control}
                   rules={{ required: "Availability date is required" }}
@@ -384,8 +419,6 @@ const RoomEditForm = () => {
                     </>
                   )}
                 />
-                </div>
-                {/* <FieldError message={errors.availableFrom?.message} /> */}
               </div>
             </section>
 
@@ -393,7 +426,11 @@ const RoomEditForm = () => {
             <section className="grid gap-6 md:grid-cols-2">
               <div>
                 <Label htmlFor="isStudio" required>Is this a Studio?</Label>
-                <Select id="isStudio" {...register("isStudio", { required: true })} onChange={handleStudioChange}>
+                <Select
+                  id="isStudio"
+                  {...register("isStudio", { required: true })}
+                  onChange={handleStudioChange}
+                >
                   <option value="false">No, not a studio</option>
                   <option value="true">Yes, studio</option>
                 </Select>

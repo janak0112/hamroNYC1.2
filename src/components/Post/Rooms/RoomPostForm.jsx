@@ -338,13 +338,13 @@ const RoomPostForm = () => {
                   /> */}
 
                   <Controller
-                    name="eventDate"
+                    name="availableFrom"
                     control={control}
                     rules={{ required: "Event date is required" }}
                     render={({ field, fieldState }) => (
                       <>
                         <DateField
-                          id="eventDate"
+                          id="availableFrom"
                           value={field.value}
                           onChange={field.onChange}
                           minDate={new Date()} // same idea as your previous "today"

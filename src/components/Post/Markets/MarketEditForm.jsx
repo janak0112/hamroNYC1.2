@@ -8,8 +8,8 @@ import { uploadImages } from "../../../utils/uploadFile";
 import { getFilePreview } from "../../../appwrite/storage";
 import conf from "../../../conf/conf";
 import ImageUploader from "../../ImageUploader/ImageUploader";
-import { createDocumentWithToast } from "../../../utils/documentUtils";
 import { Tag, DollarSign, MapPin, Phone, FileText, Package } from "lucide-react";
+import { toast } from "react-toastify";
 
 const ACCENT = "#CD4A3D";
 
@@ -63,6 +63,7 @@ const MarketEditForm = () => {
 
   const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -86,7 +87,10 @@ const MarketEditForm = () => {
         reset({
           title: item.title ?? "",
           description: item.description ?? "",
-          price: typeof item.price === "number" ? item.price : parseInt(item.price || 0, 10),
+          price:
+            typeof item.price === "number"
+              ? item.price
+              : parseInt(item.price || 0, 10),
           location: item.location ?? "",
           contact: item.contact ?? "",
           condition: item.condition || "used",
@@ -101,6 +105,8 @@ const MarketEditForm = () => {
         }
       } catch (err) {
         console.error("Error fetching market item:", err);
+        setErrorMessage("Failed to load market listing.");
+        toast.error("Failed to load market listing.");
       }
     };
 
@@ -108,11 +114,21 @@ const MarketEditForm = () => {
   }, [id, reset]);
 
   const onSubmit = async (data) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setErrorMessage("Please log in to update a market listing.");
+      toast.error("Please log in to update a market listing.");
+      return;
+    }
 
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
       const uploadedImageIds = selectedFiles.length ? await uploadImages(selectedFiles) : [];
+
+      // merge + dedupe image IDs
+      const mergedImageIds = Array.from(
+        new Set([...existingImages.map((img) => img.id), ...uploadedImageIds])
+      );
 
       const marketData = {
         title: data.title?.trim(),
@@ -122,21 +138,24 @@ const MarketEditForm = () => {
         location: data.location?.trim(),
         contact: data.contact?.trim(),
         condition: data.condition,
-        imageIds: [...existingImages.map((img) => img.id), ...uploadedImageIds],
-        postedBy: JSON.stringify(user),
-        publish: true,
+        imageIds: mergedImageIds,
+        // Do NOT override moderation/ownership fields on edit:
+        // postedBy, publish, etc. are intentionally untouched
       };
 
-      createDocumentWithToast(
-        marketData,
+      await listingService.updateDocument(
         conf.appWriteCollectionIdMarket,
-        navigate
+        id,
+        marketData
       );
 
+      toast.success("Market listing updated successfully");
       setSelectedFiles([]);
       navigate(`/market/${id}`);
     } catch (error) {
       console.error("Failed to update market listing:", error);
+      setErrorMessage(error?.message || "Failed to update market listing.");
+      toast.error("Failed to update market listing.");
     } finally {
       setIsSubmitting(false);
     }
@@ -194,6 +213,13 @@ const MarketEditForm = () => {
             </div>
           </div>
         </div>
+
+        {/* Top-level error */}
+        {errorMessage && (
+          <div className="mx-6 mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:mx-10">
+            {errorMessage}
+          </div>
+        )}
 
         {/* Form card */}
         <div className="border-t border-gray-100 bg-white/70 px-6 py-8 sm:px-10">
@@ -297,7 +323,17 @@ const MarketEditForm = () => {
                     type="text"
                     placeholder="Phone / WhatsApp / Messenger"
                     className="pl-9"
-                    {...register("contact", { required: "Contact info is required" })}
+                    {...register("contact", {
+                      required: "Contact info is required",
+                      pattern: {
+                        value: /^[0-9+\-\s()]+$/,
+                        message: "Invalid contact number",
+                      },
+                      validate: (value) => {
+                        const digits = (value || "").replace(/\D/g, "");
+                        return digits.length <= 15 || "Phone number must be 15 digits or less";
+                      },
+                    })}
                     error={!!errors.contact}
                   />
                 </div>

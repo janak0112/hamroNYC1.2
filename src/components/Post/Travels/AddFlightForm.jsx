@@ -67,8 +67,13 @@ const AddFlightForm = () => {
     if (!form.airlines.trim()) e.airlines = "Required";
     // basic phone check
     const digits = (form.contact || "").replace(/\D/g, "");
-    if (!form.contact.trim() || digits.length < 10)
-      e.contact = "Enter a valid phone (10+ digits)";
+    if (!form.contact.trim()) {
+      e.contact = "Required";
+    } else if (digits.length < 10) {
+      e.contact = "Enter a valid phone (10–15 digits)";
+    } else if (digits.length > 15) {
+      e.contact = "Phone number cannot exceed 15 digits";
+    }
     // return date must be >= date if present
     if (form.returnDate && form.date && form.returnDate < form.date) {
       e.returnDate = "Return date cannot be before departure date";
@@ -87,9 +92,9 @@ const AddFlightForm = () => {
       ...(form.returnDate ? {} : { returnDate: undefined }),
       ...(form.transitAirport ? {} : { transitAirport: undefined }),
     };
-
     try {
       setSubmitting(true);
+      console.log(form)
       await listingService.createDocument(
         dataToSubmit,
         conf.appWriteCollectionIdTravelC

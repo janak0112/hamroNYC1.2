@@ -1,3 +1,4 @@
+// src/components/Forms/Events/EventEditForm.jsx
 import React, { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -6,10 +7,16 @@ import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
-import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
 import DateField from "../../DateField/DateField";
-// import { toast } from "react-hot-toast";
+import { toast } from "react-toastify"; // ✅ make sure toast exists
+
+function normalizeDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().split("T")[0];
+}
 
 const EventEditForm = () => {
   const {
@@ -19,14 +26,15 @@ const EventEditForm = () => {
     formState: { errors },
     reset,
     setValue,
-    control
+    control,
   } = useForm();
 
-  const [postedBy, setUser] = useState({});
+  const [user, setUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -60,13 +68,11 @@ const EventEditForm = () => {
           id
         );
 
-        // Inline hydration (no helpers)
-        const dateVal =
-          doc?.eventDate
-            ? /^\d{4}-\d{2}-\d{2}$/.test(doc.eventDate)
-              ? doc.eventDate
-              : new Date(doc.eventDate).toISOString().split("T")[0]
-            : "";
+        const dateVal = doc?.eventDate
+          ? /^\d{4}-\d{2}-\d{2}$/.test(doc.eventDate)
+            ? doc.eventDate
+            : new Date(doc.eventDate).toISOString().split("T")[0]
+          : "";
 
         const timeVal = (() => {
           if (!doc?.eventTime) return "";
@@ -80,13 +86,13 @@ const EventEditForm = () => {
         reset({
           title: doc.title || "",
           description: doc.description || "",
-          eventMode: doc.eventMode || "",
+          eventMode: doc.eventMode || "inPerson",
           location: doc.eventMode === "inPerson" ? doc.location || "" : "",
           onlineLink: doc.eventMode === "online" ? doc.onlineLink || "" : "",
           contact: doc.contact || "",
           eventDate: dateVal,
           eventTime: timeVal,
-          ticketOption: doc.ticketOption || "",
+          ticketOption: doc.ticketOption || "free",
           ticketCost: doc.ticketOption === "paid" ? String(doc.ticketCost ?? "") : "",
           ticketLink: doc.ticketLink || "",
           imageIds: doc.imageIds || [],
@@ -100,6 +106,8 @@ const EventEditForm = () => {
           setExistingImages(urls);
         }
       } catch (error) {
+        console.error(error);
+        setErrorMessage("Could not load event data.");
         toast.error("Could not load event data.");
       }
     };
@@ -117,17 +125,17 @@ const EventEditForm = () => {
   }, [ticketOption, setValue]);
 
   const onSubmit = async (data) => {
-    if (!postedBy?.id) {
+    if (!user?.id) {
       toast.error("Please log in to update an Event listing.");
       return;
     }
 
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
-      let uploadedImageIds = [];
-      if (selectedFiles.length > 0) {
-        uploadedImageIds = await uploadImages(selectedFiles);
-      }
+      const uploadedImageIds = selectedFiles.length
+        ? await uploadImages(selectedFiles)
+        : [];
 
       const imageIds = Array.from(
         new Set([...existingImages.map((img) => img.id), ...uploadedImageIds])
@@ -138,27 +146,33 @@ const EventEditForm = () => {
         description: data.description?.trim(),
         location: data.eventMode === "inPerson" ? data.location?.trim() : null,
         contact: data.contact?.trim(),
-        eventDate: data.eventDate, // input is YYYY-MM-DD
-        eventTime: data.eventTime, // input is HH:mm
+        eventDate: normalizeDate(data.eventDate), // ensure YYYY-MM-DD
+        eventTime: data.eventTime,                // HH:mm from input
         ticketOption: data.ticketOption,
         ticketCost:
-          data.ticketOption === "paid"
+          data.ticketOption === "paid" && data.ticketCost !== ""
             ? String(parseFloat(data.ticketCost))
             : null,
         ticketLink: data.ticketLink || null,
         eventMode: data.eventMode,
         onlineLink: data.eventMode === "online" ? data.onlineLink?.trim() : null,
         imageIds,
-        postedBy: JSON.stringify(postedBy).slice(0, 999),
+        // Don't overwrite postedBy/publish on edit
       };
 
-      createDocumentWithToast(
-        eventData,
+      await listingService.updateDocument(
         conf.appWriteCollectionIdEvents,
-        navigate
+        id,
+        eventData
       );
 
+      toast.success("Event updated successfully");
+      setSelectedFiles([]);
       navigate(`/events/${id}`);
+    } catch (err) {
+      console.error("Update error:", err);
+      setErrorMessage(err?.message || "Failed to update event.");
+      toast.error("Failed to update event.");
     } finally {
       setIsSubmitting(false);
     }
@@ -188,9 +202,26 @@ const EventEditForm = () => {
           Update details, switch between in-person and online, and manage
           images.
         </p>
+      </div>
 
-        {/* Segmented: Event Mode */}
-        <div className="mt-5">
+      {/* Error banner */}
+      {errorMessage && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Form Card */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="mt-8 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm"
+        style={{
+          boxShadow:
+            "0 1px 0 rgba(16,24,40,.03), 0 8px 24px rgba(16,24,40,.06)",
+        }}
+      >
+        {/* Event Mode segmented */}
+        <div className="mb-5">
           <label className={labelBase}>Event Mode</label>
           <div className="inline-grid grid-cols-2 rounded-2xl border border-gray-200 bg-white p-1">
             {[
@@ -203,10 +234,11 @@ const EventEditForm = () => {
                 onClick={() =>
                   setValue("eventMode", val, { shouldValidate: true })
                 }
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${watch("eventMode") === val
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  watch("eventMode") === val
                     ? "bg-[#CD4A3D] text-white"
                     : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                }`}
               >
                 {label}
               </button>
@@ -214,17 +246,7 @@ const EventEditForm = () => {
           </div>
           {fieldError(errors.eventMode?.message)}
         </div>
-      </div>
 
-      {/* Form Card */}
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="mt-8 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm"
-        style={{
-          boxShadow:
-            "0 1px 0 rgba(16,24,40,.03), 0 8px 24px rgba(16,24,40,.06)",
-        }}
-      >
         {/* Title */}
         <div className="mb-4">
           <label htmlFor="title" className={labelBase}>
@@ -289,7 +311,6 @@ const EventEditForm = () => {
               placeholder="https://zoom.us/your-link"
               {...register("onlineLink", {
                 required: "Online link is required for online events",
-                // Inline pattern (no constant)
                 pattern: {
                   value:
                     /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/i,
@@ -311,7 +332,16 @@ const EventEditForm = () => {
             id="contact"
             type="text"
             placeholder="Name / email / phone"
-            {...register("contact", { required: "Contact info is required" })}
+            {...register("contact", {
+              required: "Contact info is required",
+              validate: (value) => {
+                const digits = (value || "").replace(/\D/g, "");
+                // allow text-only (email/name), but if it's a phone, enforce <= 15 digits
+                return digits.length === 0 || digits.length <= 15
+                  ? true
+                  : "Phone number must be 15 digits or less";
+              },
+            })}
             className={inputBase}
           />
           {fieldError(errors.contact?.message)}
@@ -323,32 +353,24 @@ const EventEditForm = () => {
             <label htmlFor="eventDate" className={labelBase}>
               Event Date
             </label>
-            {/* <input
-              id="eventDate"
-              type="date"
-              min={today}
-              {...register("eventDate", { required: "Event date is required" })}
-              className={inputBase}
-            />
-            {fieldError(errors.eventDate?.message)} */}
-                   <Controller
-                    name="eventDate"
-                    control={control}
-                    rules={{ required: "Event date is required" }}
-                    render={({ field, fieldState }) => (
-                      <>
-                        <DateField
-                          id="eventDate"
-                          value={field.value}
-                          onChange={field.onChange}
-                          minDate={new Date()}            // same idea as your previous "today"
-                          placeholder="Select date"
-                          error={!!fieldState.error}
-                        />
-                        <fieldError message={fieldState.error?.message} />
-                      </>
-                    )}
+            <Controller
+              name="eventDate"
+              control={control}
+              rules={{ required: "Event date is required" }}
+              render={({ field, fieldState }) => (
+                <>
+                  <DateField
+                    id="eventDate"
+                    value={field.value}
+                    onChange={(v) => field.onChange(normalizeDate(v))}
+                    minDate={new Date()}
+                    placeholder="Select date"
+                    error={!!fieldState.error}
                   />
+                  {fieldError(fieldState.error?.message)}
+                </>
+              )}
+            />
           </div>
 
           <div>
@@ -379,10 +401,11 @@ const EventEditForm = () => {
                 onClick={() =>
                   setValue("ticketOption", val, { shouldValidate: true })
                 }
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${watch("ticketOption") === val
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  watch("ticketOption") === val
                     ? "bg-[#CD4A3D] text-white"
                     : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                }`}
               >
                 {label}
               </button>

@@ -7,8 +7,8 @@ import authService from "../../../appwrite/auth";
 import { uploadImages } from "../../../utils/uploadFile";
 import conf from "../../../conf/conf";
 import { getFilePreview } from "../../../appwrite/storage";
-import { createDocumentWithToast } from "../../../utils/documentUtils";
 import ImageUploader from "../../ImageUploader/ImageUploader";
+import { toast } from "react-toastify";
 import {
   BriefcaseBusiness,
   Building2,
@@ -146,35 +146,40 @@ const JobEditForm = () => {
     }
 
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
       const uploadedImageIds = selectedFiles.length ? await uploadImages(selectedFiles) : [];
+
+      // merge & dedupe images
+      const mergedImageIds = Array.from(
+        new Set([...existingImages.map((img) => img.id), ...uploadedImageIds])
+      );
 
       const jobData = {
         title: data.title?.trim(),
         description: data.description?.trim(),
-        salary: data.salary ? String(data.salary) : null, // keep as string like post form
+        salary: data.salary ? String(data.salary) : null,
         salaryType: data.salaryType,
         location: data.location?.trim(),
         contactNumber: data.contactNumber?.trim() || null,
-        contactEmail: data.contactEmail?.trim() || null,
+        contactEmail: data.contactEmail?.trim().toLowerCase() || null,
         company: data.company?.trim(),
         jobType: data.jobType,
         jobLink: data.jobLink || null,
         checkOnly: !!data.checkOnly,
-        imageIds: [...existingImages.map((img) => img.id), ...uploadedImageIds],
-        postedBy: JSON.stringify(userId),
-        publish: true,
+        imageIds: mergedImageIds,
+        // Deliberately NOT touching publish/postedBy fields on edit
       };
 
-      createDocumentWithToast(jobData, conf.appWriteCollectionIdJobs, navigate);
+      await listingService.updateDocument(conf.appWriteCollectionIdJobs, id, jobData);
 
+      toast.success("Job updated successfully");
       setSelectedFiles([]);
-      setTimeout(() => {
-        navigate(`/jobs/${id}`);
-      }, 1200);
+      navigate(`/jobs/${id}`);
     } catch (error) {
       console.error("Update error:", error);
-      setErrorMessage(error.message || "Failed to update job listing.");
+      setErrorMessage(error?.message || "Failed to update job listing.");
+      toast.error("Failed to update job listing");
     } finally {
       setIsSubmitting(false);
     }
@@ -232,6 +237,13 @@ const JobEditForm = () => {
             </div>
           </div>
         </div>
+
+        {/* Top-level error */}
+        {errorMessage && (
+          <div className="mx-6 mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:mx-10">
+            {errorMessage}
+          </div>
+        )}
 
         {/* Form card */}
         <div className="border-t border-gray-100 bg-white/70 px-6 py-8 sm:px-10">
@@ -331,6 +343,11 @@ const JobEditForm = () => {
                       pattern: {
                         value: /^[0-9+\-\s()]+$/,
                         message: "Invalid contact number",
+                      },
+                      validate: (value) => {
+                        if (!value) return true; // optional
+                        const digits = value.replace(/\D/g, "");
+                        return digits.length <= 15 || "Contact number must be 15 digits or less";
                       },
                     })}
                     error={!!errors.contactNumber}
